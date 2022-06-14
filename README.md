@@ -1,2 +1,2 @@
-# Alpha-Homora-V2-Python
- Python package that allows you to simply interact with positions on the Alpha Homora V2 DeFi platform.
+# Alpha-Homora-V2
+ Contains the project files for the Alpha Homora V2 position monitor project

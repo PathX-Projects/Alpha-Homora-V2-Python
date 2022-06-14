@@ -1,0 +1,5 @@
+Alpha Homora V2 Avalanche Contract Addresses:
+https://docs.alphaventuredao.io/homora-v2/v/homora-v2-avalanche/resources/contract-addresses
+
+# Avalanche AHV2 FAQ:
+https://docs.alphaventuredao.io/homora-v2/v/homora-v2-avalanche/resources/contract-addresses#query-faq 
