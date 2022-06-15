@@ -7,12 +7,12 @@
         A Python3.9+ package that models Alpha Homora V2 positions to simplify interaction with their smart contracts in your Python projects.
     </p>
     <h3><strong>Current Features</strong></h3>
-    Fetch Position Data<br>
-    Harvest Rewards<br>
-    Close Position<br>
+    <i>Fetch Position Data</i><br>
+    <i>Harvest Rewards</i><br>
+    <i>Close Position</i><br>
     <h3><strong>Current Supported DEXes</strong></h3>
-    Pangolin V2<br>
-    Trader Joe<br>
+    <i>Pangolin V2</i><br>
+    <i>Trader Joe</i><br>
 </div>
 <br>
 
