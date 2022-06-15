@@ -1,7 +1,7 @@
-import setuptools
+from setuptools import setup, find_packages
 
 
-setuptools.setup(
+setup(
     name='alpha_homora_v2',
     version='0.0.1',
     author='PathX AI LLC',
@@ -9,6 +9,6 @@ setuptools.setup(
     description='Testing installation of Package',
     url='https://github.com/PathX-Projects/Alpha-Homora-V2-Python',
     # license='MIT',
-    packages=['alpha_homora_v2'],
+    packages=find_packages(),
     install_requires=[line.strip() for line in open('requirements.txt').readlines()],
 )
