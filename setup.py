@@ -9,6 +9,7 @@ setup(
     description='Testing installation of Package',
     url='https://github.com/PathX-Projects/Alpha-Homora-V2-Python',
     # license='MIT',
-    packages=find_packages(),
+    packages=['alpha_homora_v2'],
+    include_package_data=True,
     install_requires=[line.strip() for line in open('requirements.txt').readlines()],
 )

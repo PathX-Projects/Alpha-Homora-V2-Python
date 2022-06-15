@@ -1,0 +1,2 @@
+recursive-include alpha_homora_v2/abi *
+recursive-include alpha_homora_v2/resources *
