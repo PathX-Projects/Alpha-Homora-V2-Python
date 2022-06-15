@@ -10,7 +10,7 @@
     Fetch Position Data<br>
     Harvest Rewards<br>
     Close Position<br>
-    <h3><strong>Current DEXeSupporteds</strong></h3>
+    <h3><strong>Current Supported DEXes</strong></h3>
     Pangolin V2<br>
     Trader Joe<br>
 </div>
@@ -66,11 +66,14 @@ How to use the package:
 - Creating an [AlphaHomoraV2Position](alpha_homora_v2/position.py) instance requires the following:
     - A web3 provider object
     - Your position ID (an integer)
-        - Explain how to get this
+        - This ID should match your position on Alpha Homora, without the "#"
+        - ![demo](img/id_highlight.png)
     - The token symbol/pair (a string)
-        - Explain how to get this
+        - This parameter should exactly match the token symbol/pair displayed on your Alpha Homora as shown below.
+        - ![demo](img/token_highlight.png)
     - The DEX identifier (a string)
-        - Explain how to get this
+        - This parameter should exactly match the DEX identifier displayed on your Alpha Homora position as shown below.
+        - ![demo](img/dex_highlight.png)
     - your public and private wallet keys (both a string)
         - Your private key is required to sign transactions
 
