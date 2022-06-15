@@ -41,7 +41,7 @@ pip install git+https://github.com/PathX-Projects/Alpha-Homora-V2-Python.git
 
 ***Note:*** You will need to provide your git credentials to install this private package. If you need help generating a personal access token, see [here](https://catalyst.zoho.com/help/tutorials/githubbot/generate-access-token.html)
 
-After install, the package will be available to you in your Python environment as ***alpha-homora-v2***
+After install, the package will be available to you in your Python environment as ***alpha_homora_v2***
 
 When updates are made to the package, the version will automatically be incremented so that in order to get the newest version on your end, you can simply use the same installation command and your pip will detect and update to the newest version.
 
