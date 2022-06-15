@@ -38,7 +38,7 @@ This package is set up to be installed using the `pip` package manager.
     pip install git+https://github.com/PathX-Projects/Alpha-Homora-V2-Python.git
     ```
 
-    ***Note:*** You will need to provide your git credentials to install this private package. If you need help generating a personal access token, see [here](https://catalyst.zoho.com/help/tutorials/githubbot/generate-access-token.html)
+    ***Note:*** You may need to provide your git credentials depending on the repository privacy settings. If you need help generating a personal access token, see [here](https://catalyst.zoho.com/help/tutorials/githubbot/generate-access-token.html)
 
 3. After install, the package will be available to you in your local Python environment as ***alpha_homora_v2***
 
