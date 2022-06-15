@@ -4,7 +4,7 @@
   <br></br>
   <h2 align="center"><strong>Alpha-Homora-V2-Python</strong></h2>
     <p align="center">
-        A Python3.9+ package that models Alpha Homora V2 positions to simplify interaction with their smart contrats in your Python projects.
+        A Python3.9+ package that models Alpha Homora V2 positions to simplify interaction with their smart contracts in your Python projects.
     </p>
     <h3><strong>Current Features</strong></h3>
     Fetch Position Data<br>
