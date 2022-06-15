@@ -32,16 +32,16 @@ ___
 
 This package is set up to be installed using the `pip` package manager.
 
-Ensure that you have Python 3.9+ installed. If not, you can download [here](https://www.python.org/downloads/release/python-3912/). The syntax is dependent on features added in this recent version.
+1. Ensure that you have Python 3.9+ installed. If not, you can download [here](https://www.python.org/downloads/release/python-3912/). The syntax is dependent on features added in this recent version.
 
-Install the package to your pip installation directory:
-```bash
-pip install git+https://github.com/PathX-Projects/Alpha-Homora-V2-Python.git
-```
+2. Install the package using pip (you must use the git+url as this project is private and not listed on PyPi):
+    ```bash
+    pip install git+https://github.com/PathX-Projects/Alpha-Homora-V2-Python.git
+    ```
 
-***Note:*** You will need to provide your git credentials to install this private package. If you need help generating a personal access token, see [here](https://catalyst.zoho.com/help/tutorials/githubbot/generate-access-token.html)
+    ***Note:*** You will need to provide your git credentials to install this private package. If you need help generating a personal access token, see [here](https://catalyst.zoho.com/help/tutorials/githubbot/generate-access-token.html)
 
-After install, the package will be available to you in your Python environment as ***alpha_homora_v2***
+3. After install, the package will be available to you in your Python environment as ***alpha_homora_v2***
 
 When updates are made to the package, the version will automatically be incremented so that in order to get the newest version on your end, you can simply use the same installation command and your pip will detect and update to the newest version.
 
