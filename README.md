@@ -25,7 +25,6 @@
     <li><a href="#uninstallation">Uninstallation</a></li>
   </ol>
 </details>
-<br>
 
 ## Installation
 ___
