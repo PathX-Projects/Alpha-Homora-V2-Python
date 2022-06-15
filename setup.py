@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='alpha_homora_v2',
-    version='0.0.1',
+    version='0.0.2',
     author='PathX AI LLC',
     author_email='pathxtech@gmail.com',
     description='Testing installation of Package',
