@@ -1,0 +1,3 @@
+pycoingecko
+web3
+requests
