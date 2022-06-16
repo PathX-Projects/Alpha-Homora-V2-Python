@@ -62,12 +62,11 @@ class TraderJoeV1Client(SpellClient):
         amtARepay = underlying_tokens[0][1]
         if amtARepay > 0:
             amtARepay = int(MAX_INT, 16)
-            
         amtBRepay = underlying_tokens[1][1]
         if amtBRepay > 0:
             amtBRepay = int(MAX_INT, 16)
 
-        # Slippage controls (Minimum amount allowed after final transaction) 0 = No slippage controls
+        # Slippage controls (Minimum amount allowed after final transaction); 0 = No slippage controls
         amtAMin = 0
         amtBMin = 0
         
@@ -102,12 +101,11 @@ class PangolinV2Client(SpellClient):
         amtARepay = underlying_tokens[0][1]
         if amtARepay > 0:
             amtARepay = int(MAX_INT, 16)
-            
         amtBRepay = underlying_tokens[1][1]
         if amtBRepay > 0:
             amtBRepay = int(MAX_INT, 16)
 
-        # Slippage controls (Minimum amount allowed after final transaction) 0 = No slippage controls
+        # Slippage controls (Minimum amount allowed after final transaction); 0 = No slippage controls
         amtAMin = 0
         amtBMin = 0
 
