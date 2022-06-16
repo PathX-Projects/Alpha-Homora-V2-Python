@@ -60,11 +60,26 @@ class TraderJoeV1Client(SpellClient):
         amtLPTake = position_size  # int(MAX_INT, 16)
         amtLPWithdraw = 0  # int(MAX_INT, 16)
         amtARepay = underlying_tokens[0][1]
+        if amtARepay > 0:
+            amtARepay = int(MAX_INT, 16)
+            
         amtBRepay = underlying_tokens[1][1]
+        if amtBRepay > 0:
+            amtBRepay = int(MAX_INT, 16)
 
         # Slippage controls (Minimum amount allowed after final transaction) 0 = No slippage controls
         amtAMin = 0
         amtBMin = 0
+        
+        print("Attempting to close position with following parameters:\n"
+              "removeLiquidityWMasterChef\n"
+              f"Underlying Tokens: {underlying_tokens}\n"
+              f"amtLPTake: {amtLPTake}\n"
+              f"amtLPWithdraw: {amtLPWithdraw}\n"
+              f"amtARepay: {amtARepay}\n"
+              f"amtBRepay: {amtBRepay}\n"
+              f"amtAMin: {amtAMin}\n"
+              f"amtBMin: {amtBMin}")
 
         return self.contract.encodeABI(fn_name='removeLiquidityWMasterChef',
                                        args=[underlying_tokens[0][0], underlying_tokens[1][0],
@@ -85,11 +100,26 @@ class PangolinV2Client(SpellClient):
         amtLPTake = position_size  # int(MAX_INT, 16)
         amtLPWithdraw = 0  # int(MAX_INT, 16)
         amtARepay = underlying_tokens[0][1]
+        if amtARepay > 0:
+            amtARepay = int(MAX_INT, 16)
+            
         amtBRepay = underlying_tokens[1][1]
+        if amtBRepay > 0:
+            amtBRepay = int(MAX_INT, 16)
 
         # Slippage controls (Minimum amount allowed after final transaction) 0 = No slippage controls
         amtAMin = 0
         amtBMin = 0
+
+        print("Attempting to close position with following parameters:\n"
+              "removeLiquidityWMiniChef\n"
+              f"Underlying Tokens: {underlying_tokens}\n"
+              f"amtLPTake: {amtLPTake}\n"
+              f"amtLPWithdraw: {amtLPWithdraw}\n"
+              f"amtARepay: {amtARepay}\n"
+              f"amtBRepay: {amtBRepay}\n"
+              f"amtAMin: {amtAMin}\n"
+              f"amtBMin: {amtBMin}")
 
         return self.contract.encodeABI(fn_name='removeLiquidityWMiniChef',
                                        args=[underlying_tokens[0][0], underlying_tokens[1][0],

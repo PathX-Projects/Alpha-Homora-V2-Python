@@ -172,7 +172,7 @@ class AlphaHomoraV2Position:
 
         return tx_hash.hex(), receipt
 
-    def decode_transaction_data(self, w3_provider: Web3, transaction_address: Optional) -> tuple:
+    def decode_transaction_data(self, transaction_address: Optional) -> tuple:
         """
         Returns the transaction data used to invoke the smart contract function for the underlying contract
 
@@ -186,7 +186,7 @@ class AlphaHomoraV2Position:
             decoded spell function (ContractFunction, dict)
         )
         """
-        transaction = w3_provider.eth.get_transaction(transaction_address)
+        transaction = self.w3_provider.eth.get_transaction(transaction_address)
 
         decoded_bank_transaction = self.homora_bank.decode_function_input(transaction.input)
 
