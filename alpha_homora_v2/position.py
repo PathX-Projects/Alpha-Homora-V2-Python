@@ -90,8 +90,15 @@ class AlphaHomoraV2Position:
         """
 
         encoded_spell_func = self.platform.prepare_claim_all_rewards()
+        
+        pool_info = self.get_pool_info()
 
-        encoded_bank_func = self.homora_bank.functions.execute(self.pos_id, self.platform.address, encoded_spell_func)
+        try:
+            spell_address = Web3.toChecksumAddress(pool_info['spellAddress'])
+        except KeyError:
+            spell_address = Web3.toChecksumAddress(self.platform.address)
+
+        encoded_bank_func = self.homora_bank.functions.execute(self.pos_id, spell_address, encoded_spell_func)
 
         tx_hash, receipt = self.sign_and_send(
             encoded_bank_func
