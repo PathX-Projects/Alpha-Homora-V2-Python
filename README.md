@@ -46,7 +46,6 @@ This package is set up to be installed using the `pip` package manager.
 When updates are made to the package, the version will automatically be incremented so that in order to get the newest version on your end, you can simply use the same installation command and your pip will detect and update to the newest version.
 
 ## Usage
-___
 
 How to use the package:
 
@@ -101,7 +100,6 @@ How to use the package:
     ```
 
 ## Uninstallation:
-___
 
 Uninstall the package like any other Python package using the pip uninstall command:
 ```bash
@@ -109,7 +107,6 @@ pip uninstall alpha-homora-v2
 ```
 
 ## Roadmap:
-___
 
 1. ***(WIP)*** Get position value of equity and debt
 2. ***(WIP)*** Get outstanding rewards value in native rewards token and USD
