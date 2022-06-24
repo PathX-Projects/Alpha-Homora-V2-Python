@@ -28,7 +28,6 @@
 </details>
 
 ## Installation
-___
 
 This package is set up to be installed using the `pip` package manager.
 
