@@ -23,6 +23,7 @@
     <li><a href="#installation">Installation</a></li>
     <li><a href="#usage">Usage</a></li>
     <li><a href="#uninstallation">Uninstallation</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
   </ol>
 </details>
 
@@ -106,3 +107,11 @@ Uninstall the package like any other Python package using the pip uninstall comm
 ```bash
 pip uninstall alpha-homora-v2
 ```
+
+## Roadmap:
+___
+
+1. ***(WIP)*** Get position value of equity and debt
+2. ***(WIP)*** Get outstanding rewards value in native rewards token and USD
+3. ***(WIP)*** Get current debt ratio 
+4. Integrate other DEXes outside of the Avalanche network
