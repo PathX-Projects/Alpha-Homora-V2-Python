@@ -6,11 +6,10 @@ from pycoingecko import CoinGeckoAPI
 cg = CoinGeckoAPI()
 
 
-def GetPriceFunc(Token_Symbol: str):
+def get_token_price(token_symbol: str):
     """Get the realtime USD price of a token"""
     path = join(abspath((dirname(__file__))), "resources", "coingecko_token_id.csv")
     id_df = pd.read_csv(path, index_col=0)
-    token_id = id_df['id'].loc[Token_Symbol]
+    token_id = id_df['id'].loc[token_symbol]
 
-    pool_token_price = cg.get_price(ids=token_id, vs_currencies='usd')[token_id]['usd']
-    return pool_token_price
+    return cg.get_price(ids=token_id, vs_currencies='usd')[token_id]['usd']

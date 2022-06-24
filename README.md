@@ -66,9 +66,13 @@ How to use the package:
     - Your position ID (an integer)
         - This ID should match your position on Alpha Homora, without the "#"
         - ![demo](img/id_highlight.png)
+      
+    <!--- DEPRECATED
     - The token symbol/pair (a string)
         - This parameter should exactly match the token symbol/pair displayed on your Alpha Homora as shown below.
         - ![demo](img/token_highlight.png)
+    -->
+  
     - The DEX identifier (a string)
         - This parameter should exactly match the DEX identifier displayed on your Alpha Homora position as shown below.
         - ![demo](img/dex_highlight.png)

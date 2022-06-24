@@ -39,16 +39,17 @@ def ContractInstanceFunc(web3_provider: Web3, json_abi_file, contract_address):
     return web3_provider.eth.contract(address=contract_address, abi=contract_abi)
 
 
-def store_abi(abi_url: str, abi_filename: str) -> None:
+def store_abi(abi_url: str, abi_filename: str, abi_path: str = None) -> None:
     """
     Format and store a smart contract ABI in JSON locally
 
     :param abi_url: ETHERSCAN -> Export ABI -> RAW/Text Format -> Get the URL
                     (ex. "http://api.etherscan.io/api?module=contract&action=getabi&address=0xc4a59cfed3fe06bdb5c21de75a70b20db280d8fe&format=raw")
     :param abi_filename: The desired filename for local storage
+    :param abi_path: The local path for the abi if one already exists and is being refactored
     """
     contract_abi = requests.get(abi_url).json()
 
-    path = join(abspath(join(dirname(__file__), pardir)), "abi", abi_filename)
+    path = join(abspath(join(dirname(__file__), pardir)), "abi", abi_filename) if abi_path is None else abi_path
     with open(path, "w") as json_file:
         json_file.write(json.dumps(contract_abi, indent=2))

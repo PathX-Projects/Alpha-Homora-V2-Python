@@ -15,11 +15,16 @@ from .resources.abi_reference import *
 class SpellClient:
     """Models what each spell client should look like for functionality continuity"""
 
-    def __init__(self, web3_provider: Web3, abi_filename: str, contract_address: str):
-        self.contract = ContractInstanceFunc(json_abi_file=abi_filename,
-                                             contract_address=contract_address,
-                                             web3_provider=web3_provider)
+    def __init__(self, web3_provider: Web3, abi_filename: str, contract_address: str,
+                 coll_contract_abi_filename: str, coll_contract_address: str,
+                 staking_contract_abi_filename: str, staking_contract_address: str):
+        self.spell_contract = ContractInstanceFunc(web3_provider,
+                                             abi_filename, contract_address)
         self.address = Web3.toChecksumAddress(contract_address)
+        self.coll_contract = ContractInstanceFunc(web3_provider,
+                                                  coll_contract_abi_filename, coll_contract_address)
+        self.staking_contract = ContractInstanceFunc(web3_provider,
+                                                     staking_contract_abi_filename, staking_contract_address)
 
     def prepare_claim_all_rewards(self) -> ContractFunction:
         pass
@@ -38,7 +43,23 @@ class SpellClient:
 
         :param tokens: List of token addresses in the LP pool
         """
-        return self.contract.functions.getAndApprovePair(*[Web3.toChecksumAddress(address) for address in tokens]).call()
+        return self.spell_contract.functions.getAndApprovePair(*[Web3.toChecksumAddress(address) for address in tokens]).call()
+
+    def decode_collid(self, coll_id: int) -> list:
+        """
+        Get the PID for the given token id used as collateral (collid)
+        Position must be on the same platform as the spell.
+
+        :return: PID, entryRewardPerShare
+        """
+        return self.coll_contract.functions.decodeId(coll_id).call()
+
+    def get_pool_info(self, coll_id) -> dict:
+        """
+        SEE SPELL CLIENTS FOR RETURN VALUES
+
+        Returns a dict with key value pairs since the output is variable depending on the platform.
+        """
 
 
 class SushiswapSpellsV1Client(SpellClient):
@@ -48,10 +69,10 @@ class SushiswapSpellsV1Client(SpellClient):
 
 class TraderJoeV1Client(SpellClient):
     def __init__(self, web3_provider: Web3):
-        super().__init__(web3_provider, *TraderJoeSpellV1_ABI)
+        super().__init__(web3_provider, *TraderJoeSpellV1_ABI, *WMasterchefJoeV2_ABI, *MasterChefJoeV2_ABI)
 
     def prepare_claim_all_rewards(self) -> ContractFunction:
-        return self.contract.encodeABI(fn_name='harvestWMasterChef')
+        return self.spell_contract.encodeABI(fn_name='harvestWMasterChef')
 
     def prepare_close_position(self, underlying_tokens: list[tuple], position_size: int,
                                amtLPRepay: int = 0) -> ContractFunction:
@@ -80,17 +101,37 @@ class TraderJoeV1Client(SpellClient):
               f"amtAMin: {amtAMin}\n"
               f"amtBMin: {amtBMin}")
 
-        return self.contract.encodeABI(fn_name='removeLiquidityWMasterChef',
-                                       args=[underlying_tokens[0][0], underlying_tokens[1][0],
+        return self.spell_contract.encodeABI(fn_name='removeLiquidityWMasterChef',
+                                             args=[underlying_tokens[0][0], underlying_tokens[1][0],
                                              (amtLPTake, amtLPWithdraw, amtARepay, amtBRepay, amtLPRepay, amtAMin, amtBMin)])
+
+    def get_pool_info(self, coll_id) -> dict:
+        """
+        :param coll_id: The coded collId as returned by HomoraBank.getPositionInfo()
+
+        :return: (dict)
+            pid - The decoded position ID (int)
+            entryRewardPerShare - entry reward per share in JOE (int)
+            lpTokenAddress - liquidity pool token address (str)
+            allocPoint - alloc point
+            lastRewardTimestamp - last reward timestamp (int)
+            accRewardPerShare - acc reward (JOE) per share (str)
+            rewarderAddress - rewarder address (str)
+        """
+        pid, entryRewardPerShare = self.decode_collid(coll_id)
+        pool_info = self.staking_contract.functions.poolInfo(pid).call()
+        # return pid, entryRewardPerShare, *pool_info
+        return {"pid": pid, "entryRewardPerShare": entryRewardPerShare, "lpTokenAddress": pool_info[0],
+                "allocPoint": pool_info[1], "lastRewardTimestamp": pool_info[2], "accRewardPerShare": pool_info[3],
+                "rewarderAddress": pool_info[4]}
 
 
 class PangolinV2Client(SpellClient):
     def __init__(self, web3_provider: Web3):
-        super().__init__(web3_provider, *PangolinSpellV2_ABI)
+        super().__init__(web3_provider, *PangolinSpellV2_ABI, *WMiniChefPNG_ABI, *MiniChefV2_ABI)
 
     def prepare_claim_all_rewards(self) -> ContractFunction:
-        return self.contract.encodeABI(fn_name='harvestWMiniChefRewards')
+        return self.spell_contract.encodeABI(fn_name='harvestWMiniChefRewards')
 
     def prepare_close_position(self, underlying_tokens: list[tuple], position_size: int,
                                amtLPRepay: int = 0) -> ContractFunction:
@@ -119,6 +160,23 @@ class PangolinV2Client(SpellClient):
               f"amtAMin: {amtAMin}\n"
               f"amtBMin: {amtBMin}")
 
-        return self.contract.encodeABI(fn_name='removeLiquidityWMiniChef',
-                                       args=[underlying_tokens[0][0], underlying_tokens[1][0],
+        return self.spell_contract.encodeABI(fn_name='removeLiquidityWMiniChef',
+                                             args=[underlying_tokens[0][0], underlying_tokens[1][0],
                                              (amtLPTake, amtLPWithdraw, amtARepay, amtBRepay, amtLPRepay, amtAMin, amtBMin)])
+
+    def get_pool_info(self, coll_id) -> dict:
+        """
+        :param coll_id: The coded collId as returned by HomoraBank.getPositionInfo()
+
+        :return: (dict)
+            pid - The decoded position ID (int)
+            entryRewardPerShare - entry reward per share in PNG (int)
+            accRewardPerShare - acc reward per share in PNG (str)
+            lastRewardTimestamp - last reward timestamp (int)
+            allocPoint - alloc point
+        """
+        pid, entryRewardPerShare = self.decode_collid(coll_id)
+        pool_info = self.staking_contract.functions.poolInfo(pid).call()
+        # return pid, entryRewardPerShare, *pool_info
+        return {"pid": pid, "entryRewardPerShare": entryRewardPerShare, "accRewardPerShare": pool_info[0],
+                "lastRewardTimestamp": pool_info[1], "allocPoint": pool_info[2]}
