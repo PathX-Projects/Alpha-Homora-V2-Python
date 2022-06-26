@@ -4,7 +4,7 @@ from os import getcwd, pardir
 from typing import Optional, Union
 
 from .resources.abi_reference import *
-from .util import ContractInstanceFunc, cov_from
+from .util import ContractInstanceFunc, cov_from, get_token_info_from_ref
 from .spell import SpellClient, PangolinV2Client, TraderJoeV1Client
 from .oracle import get_token_price
 
@@ -123,18 +123,17 @@ class AlphaHomoraV2Position:
         :return:
             - reward_amount (float) (in the native reward token)
             - reward_value (float) (in USD)
-            - reward_token_address (address str)
+            - reward_token_address (str)
             - reward_token_symbol (str)
         """
+        if self.dex != "Pangolin V2":
+            raise NotImplementedError("This feature is currently only available for positions on the Pangolin V2 DEX")
+        
         owner, coll_token, coll_id, collateral_size = self.get_position_info()
-        print("Untouched Collateral Size:", collateral_size)
 
         pool_info = self.platform.get_pool_info(coll_id)
-        if self.dex == "Pangolin V2":
-            entryRewardPerShare = pool_info['entryRewardPerShare'] / 1e18
-            accRewardPerShare = pool_info['accRewardPerShare'] / 1e18
-        else:
-            raise NotImplementedError("Currently this feature is only available for positions on the Pangolin V2 DEX")
+        entryRewardPerShare = pool_info['entryRewardPerShare'] / 1e18
+        accRewardPerShare = pool_info['accRewardPerShare'] / 1e18
 
         if accRewardPerShare >= entryRewardPerShare:
             reward_amount = collateral_size * (accRewardPerShare - entryRewardPerShare) / 1e12
@@ -155,10 +154,130 @@ class AlphaHomoraV2Position:
 
         return borrow_credit / collateral_credit
 
-    def get_position_value(self) -> tuple:
-        """Returns the value of the position in USD and AVAX"""
-        raise NotImplementedError
+    def get_position_value(self):
+        """
+        Get equity, debt, and total position value in AVAX and USD.
 
+        :return: (dict)
+            - equity_avax (float)
+            - equity_usd (float)
+            - debt_avax (float)
+            - debt_usd (float)
+            - position_avax (float)
+            - position_usd (float)
+        """
+        # Get pool info & underlying token metadata
+        pool_info = self.get_pool_info()
+        underlying_token_data = [get_token_info_from_ref(token) for token in self.get_pool_info()['tokens']]
+
+        # Get AVAX price once since operation is heavily reliant on this value
+        avax_price = get_token_price("AVAX")
+
+        # Get token pair liquidity pool data:
+        pool_instance = self.platform.get_lp_contract(pool_info['lpTokenAddress'])
+        collateral_size = self.get_position_info()[-1]
+        r0, r1, last_block_time = pool_instance.functions.getReserves().call()
+        supply = pool_instance.functions.totalSupply().call()
+
+        # Process values by token to get full totals:
+        debt_value_usd = 0
+        debt_value_avax = 0
+        position_value_usd = 0
+        position_value_avax = 0
+        for i, token_reserve_amt in enumerate([r0, r1]):
+            token_price_usd = get_token_price(underlying_token_data[i]["symbol"])
+            precision = int(underlying_token_data[i]['precision'])
+
+            owned_reserve_amt = (token_reserve_amt * collateral_size // supply) / 10 ** precision
+            owned_reserve_amt_usd = owned_reserve_amt * token_price_usd
+            # print(f"{underlying_token_data[i]['symbol']} owned_reserve_amt_usd:", owned_reserve_amt_usd)
+
+            # Get & calculate token debt for underlying token:
+            borrow_bal = self.homora_bank.functions.\
+                borrowBalanceCurrent(self.pos_id, Web3.toChecksumAddress(underlying_token_data[i]['address'])).call()
+            token_debt = borrow_bal / 10 ** precision
+            token_debt_usd = token_debt * token_price_usd
+            token_debt_avax = token_debt_usd / avax_price
+
+            # Add debt values to total debt valye count
+            debt_value_usd += token_debt_usd
+            debt_value_avax += token_debt_avax
+
+            # Add owned reserve values to total position value count
+            position_value_usd += owned_reserve_amt_usd
+            position_value_avax += owned_reserve_amt_usd * (1 / avax_price)
+
+        # Derive equity values from position and debt:
+        total_equity_avax = position_value_avax - debt_value_avax
+        total_equity_usd = position_value_usd - debt_value_usd
+
+        return {"equity_avax": total_equity_avax, "equity_usd": total_equity_usd,
+                "debt_avax": debt_value_avax, "debt_usd": debt_value_usd,
+                "position_avax": position_value_avax, "position_usd": position_value_usd}
+
+    # Deprecated but left temporarily for backup and reference:
+    # def get_position_value(self):
+    #     """
+    #     Get equity value, debt value, and total position value in AVAX and USD.
+    #
+    #     :return: (dict)
+    #         - equity_avax (float)
+    #         - equity_usd (float)
+    #         - debt_avax (float)
+    #         - debt_usd (float)
+    #         - position_avax (float)
+    #         - position_usd (float)
+    #     """
+    #     pool_info = self.get_pool_info()
+    #     underlying_token_data = [get_token_info_from_ref(token) for token in self.get_pool_info()['tokens']]
+    #     lp_address = pool_info['lpTokenAddress']
+    #     avax_price = get_token_price("AVAX")
+    #
+    #     pool_instance = self.platform.get_lp_contract(lp_address)
+    #
+    #     collateral_size = self.get_position_info()[-1]
+    #
+    #     r0, r1, last_block_time = pool_instance.functions.getReserves().call()
+    #     supply = pool_instance.functions.totalSupply().call()
+    #
+    #     token0_amount = (r0 * collateral_size / supply) / 10 ** int(underlying_token_data[0]['precision'])
+    #     token1_amount = (r1 * collateral_size / supply) / 10 ** int(underlying_token_data[1]['precision'])
+
+    #     position_value_usd = token0_amount + (token1_amount * avax_price)
+    #     position_value_avax = position_value_usd * (1 / avax_price)
+    #
+    #     print("Position Value:", position_value_usd)
+    #
+    #     # Get debts for underlying tokens:
+    #     total_debt_usd = 0.0
+    #     total_debt_avax = 0.0
+    #     for i, token in enumerate(pool_info['tokens']):
+    #         borrow_bal = self.homora_bank.functions.borrowBalanceCurrent(self.pos_id,
+    #                                                                      Web3.toChecksumAddress(token)).call()
+    #         mtd = get_token_info_from_ref(token)
+    #         if mtd is None:
+    #             raise ValueError(f"Could not locate token metadata for {token}")
+    #
+    #         token_price_usd = get_token_price(mtd['symbol'])
+    #
+    #         bbal_in_token = borrow_bal / 10 ** int(mtd['precision'])
+    #         bbal_in_usd = bbal_in_token * token_price_usd
+    #         bbal_in_avax = bbal_in_token / get_token_price('AVAX')
+    #
+    #         total_debt_usd += bbal_in_usd
+    #         total_debt_avax += bbal_in_avax
+    #
+    #         print(f"{mtd['symbol']} | "
+    #               f"token{i}_amount: {[token0_amount, token1_amount][i]} | "
+    #               f"r{i}: {[r0, r1][i]}")
+    #
+    #     equity_avax = position_value_avax - total_debt_avax
+    #     equity_usd = position_value_usd - total_debt_usd
+    #
+    #     return {"equity_avax": equity_avax, "equity_usd": equity_usd,
+    #             "debt_avax": total_debt_avax, "debt_usd": total_debt_usd,
+    #             "position_avax": position_value_avax, "position_usd": position_value_usd}
+        
     """ ------------------------------------------ UTILITY ------------------------------------------ """
     def get_platform(self, identifier: str) -> SpellClient:
         """Determine what dex the position is on (i.e. Trader Joe, Pangolin V2, Sushiswap, etc)"""

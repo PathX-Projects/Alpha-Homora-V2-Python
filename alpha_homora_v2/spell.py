@@ -2,6 +2,7 @@ import json
 from os.path import join, abspath, dirname
 from os import getcwd, pardir
 
+import web3.eth
 from web3 import Web3
 from web3.middleware import geth_poa_middleware
 from web3.contract import ContractFunction
@@ -18,6 +19,7 @@ class SpellClient:
     def __init__(self, web3_provider: Web3, abi_filename: str, contract_address: str,
                  coll_contract_abi_filename: str, coll_contract_address: str,
                  staking_contract_abi_filename: str, staking_contract_address: str):
+        self.w3_provider = web3_provider
         self.spell_contract = ContractInstanceFunc(web3_provider,
                                              abi_filename, contract_address)
         self.address = Web3.toChecksumAddress(contract_address)
@@ -60,6 +62,17 @@ class SpellClient:
 
         Returns a dict with key value pairs since the output is variable depending on the platform.
         """
+        pass
+
+    def get_lp_contract(self, lp_token_address: str) -> web3.eth.Contract:
+        """
+        Returns a contract instance for the liquidity pool matching the given address.
+        This address can be found using the get_pool_info() class method in the positions.AlphaHomoraV2Position.
+
+        :param lp_token_address: The contract address for the liquidity pool token on the Spell's network.
+        :return: Contract instance for using the LP pool methods.
+        """
+        pass
 
 
 class SushiswapSpellsV1Client(SpellClient):
@@ -125,6 +138,9 @@ class TraderJoeV1Client(SpellClient):
                 "allocPoint": pool_info[1], "lastRewardTimestamp": pool_info[2], "accRewardPerShare": pool_info[3],
                 "rewarderAddress": pool_info[4]}
 
+    def get_lp_contract(self, lp_token_address: str) -> web3.eth.Contract:
+        return ContractInstanceFunc(self.w3_provider, TraderJoeLP_ABI[0], lp_token_address)
+
 
 class PangolinV2Client(SpellClient):
     def __init__(self, web3_provider: Web3):
@@ -180,3 +196,6 @@ class PangolinV2Client(SpellClient):
         # return pid, entryRewardPerShare, *pool_info
         return {"pid": pid, "entryRewardPerShare": entryRewardPerShare, "accRewardPerShare": pool_info[0],
                 "lastRewardTimestamp": pool_info[1], "allocPoint": pool_info[2]}
+
+    def get_lp_contract(self, lp_token_address: str) -> web3.eth.Contract:
+        return ContractInstanceFunc(self.w3_provider, PangolinLiquidity_ABI[0], lp_token_address)
