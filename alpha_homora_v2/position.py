@@ -41,6 +41,7 @@ class AlphaHomoraV2Position:
         self.owner = owner_wallet_address
         self.private_key = owner_private_key
         self.position_type = position_type
+        self.symbol = self.get_pool_info()['name']
 
     """ ------------------------------------------ PRIMARY ------------------------------------------ """
     def close(self) -> tuple[str, dict]:
