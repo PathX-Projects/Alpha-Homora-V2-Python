@@ -155,11 +155,11 @@ class AlphaHomoraV2Position:
 
         return borrow_credit / collateral_credit
 
-    def get_position_value(self):
+    def get_position_value(self) -> tuple[float, float, float, float, float, float]:
         """
         Get equity, debt, and total position value in AVAX and USD.
 
-        :return: (dict)
+        :return: (tuple)
             - equity_avax (float)
             - equity_usd (float)
             - debt_avax (float)
@@ -212,72 +212,11 @@ class AlphaHomoraV2Position:
         total_equity_avax = position_value_avax - debt_value_avax
         total_equity_usd = position_value_usd - debt_value_usd
 
-        return {"equity_avax": total_equity_avax, "equity_usd": total_equity_usd,
-                "debt_avax": debt_value_avax, "debt_usd": debt_value_usd,
-                "position_avax": position_value_avax, "position_usd": position_value_usd}
+        return total_equity_avax, total_equity_usd, debt_value_avax, debt_value_usd, position_value_avax, position_value_usd
+        # return {"equity_avax": total_equity_avax, "equity_usd": total_equity_usd,
+        #         "debt_avax": debt_value_avax, "debt_usd": debt_value_usd,
+        #         "position_avax": position_value_avax, "position_usd": position_value_usd}
 
-    # Deprecated but left temporarily for backup and reference:
-    # def get_position_value(self):
-    #     """
-    #     Get equity value, debt value, and total position value in AVAX and USD.
-    #
-    #     :return: (dict)
-    #         - equity_avax (float)
-    #         - equity_usd (float)
-    #         - debt_avax (float)
-    #         - debt_usd (float)
-    #         - position_avax (float)
-    #         - position_usd (float)
-    #     """
-    #     pool_info = self.get_pool_info()
-    #     underlying_token_data = [get_token_info_from_ref(token) for token in self.get_pool_info()['tokens']]
-    #     lp_address = pool_info['lpTokenAddress']
-    #     avax_price = get_token_price("AVAX")
-    #
-    #     pool_instance = self.platform.get_lp_contract(lp_address)
-    #
-    #     collateral_size = self.get_position_info()[-1]
-    #
-    #     r0, r1, last_block_time = pool_instance.functions.getReserves().call()
-    #     supply = pool_instance.functions.totalSupply().call()
-    #
-    #     token0_amount = (r0 * collateral_size / supply) / 10 ** int(underlying_token_data[0]['precision'])
-    #     token1_amount = (r1 * collateral_size / supply) / 10 ** int(underlying_token_data[1]['precision'])
-
-    #     position_value_usd = token0_amount + (token1_amount * avax_price)
-    #     position_value_avax = position_value_usd * (1 / avax_price)
-    #
-    #     print("Position Value:", position_value_usd)
-    #
-    #     # Get debts for underlying tokens:
-    #     total_debt_usd = 0.0
-    #     total_debt_avax = 0.0
-    #     for i, token in enumerate(pool_info['tokens']):
-    #         borrow_bal = self.homora_bank.functions.borrowBalanceCurrent(self.pos_id,
-    #                                                                      Web3.toChecksumAddress(token)).call()
-    #         mtd = get_token_info_from_ref(token)
-    #         if mtd is None:
-    #             raise ValueError(f"Could not locate token metadata for {token}")
-    #
-    #         token_price_usd = get_token_price(mtd['symbol'])
-    #
-    #         bbal_in_token = borrow_bal / 10 ** int(mtd['precision'])
-    #         bbal_in_usd = bbal_in_token * token_price_usd
-    #         bbal_in_avax = bbal_in_token / get_token_price('AVAX')
-    #
-    #         total_debt_usd += bbal_in_usd
-    #         total_debt_avax += bbal_in_avax
-    #
-    #         print(f"{mtd['symbol']} | "
-    #               f"token{i}_amount: {[token0_amount, token1_amount][i]} | "
-    #               f"r{i}: {[r0, r1][i]}")
-    #
-    #     equity_avax = position_value_avax - total_debt_avax
-    #     equity_usd = position_value_usd - total_debt_usd
-    #
-    #     return {"equity_avax": equity_avax, "equity_usd": equity_usd,
-    #             "debt_avax": total_debt_avax, "debt_usd": total_debt_usd,
-    #             "position_avax": position_value_avax, "position_usd": position_value_usd}
         
     """ ------------------------------------------ UTILITY ------------------------------------------ """
     def get_platform(self, identifier: str) -> SpellClient:

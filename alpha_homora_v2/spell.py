@@ -133,7 +133,6 @@ class TraderJoeV1Client(SpellClient):
         """
         pid, entryRewardPerShare = self.decode_collid(coll_id)
         pool_info = self.staking_contract.functions.poolInfo(pid).call()
-        # return pid, entryRewardPerShare, *pool_info
         return {"pid": pid, "entryRewardPerShare": entryRewardPerShare, "lpTokenAddress": pool_info[0],
                 "allocPoint": pool_info[1], "lastRewardTimestamp": pool_info[2], "accRewardPerShare": pool_info[3],
                 "rewarderAddress": pool_info[4]}
@@ -193,7 +192,6 @@ class PangolinV2Client(SpellClient):
         """
         pid, entryRewardPerShare = self.decode_collid(coll_id)
         pool_info = self.staking_contract.functions.poolInfo(pid).call()
-        # return pid, entryRewardPerShare, *pool_info
         return {"pid": pid, "entryRewardPerShare": entryRewardPerShare, "accRewardPerShare": pool_info[0],
                 "lastRewardTimestamp": pool_info[1], "allocPoint": pool_info[2]}
 

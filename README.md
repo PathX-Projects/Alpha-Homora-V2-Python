@@ -111,7 +111,8 @@ pip uninstall alpha-homora-v2
 
 ## Roadmap:
 
-1. ***(WIP)*** Get position value of equity and debt
-2. ***(WIP)*** Get outstanding rewards value in native rewards token and USD
-3. ***(WIP)*** Get current debt ratio 
-4. Integrate other DEXes outside of the Avalanche network
+1. ~~Get position value of equity and debt~~
+2. ~~Get current debt ratio~~
+3. Get outstanding rewards value in native rewards token and USD
+4. Get current pool APY
+5. Integrate with Ethereum network exchanges
