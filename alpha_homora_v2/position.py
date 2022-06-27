@@ -17,7 +17,7 @@ from web3.exceptions import ContractLogicError
 
 class AlphaHomoraV2Position:
     def __init__(self, web3_provider: Web3, position_id: int, dex: str, owner_wallet_address: str,
-                 owner_private_key: str, position_type: str = "Yield Farming"):
+                 owner_private_key: str = None, position_type: str = "Yield Farming"):
         """
         :param web3_provider: The Web3 object used to interact with the Alpha Homora V2 position's chain
                               (ex. Web3(Web3.HTTPProvider(your_network_rpc_url)))
@@ -52,6 +52,7 @@ class AlphaHomoraV2Position:
             - transaction hash
             - transaction receipt
         """
+        self.has_private_key()
 
         pool_info = self.get_pool_info()
 
@@ -93,6 +94,7 @@ class AlphaHomoraV2Position:
                 - transaction receipt (AttributeDict)
             else None
         """
+        self.has_private_key()
 
         try:
             if self.get_rewards_value()[0] == 0:
@@ -117,7 +119,7 @@ class AlphaHomoraV2Position:
 
         return tx_hash, receipt
 
-    def get_rewards_value(self) -> tuple[float, float, str, str]:
+    def get_rewards_value(self) -> dict:  # tuple[float, float, str, str]
         """
         Get the amount of outstanding yield farming rewards in the position.
 
@@ -143,9 +145,11 @@ class AlphaHomoraV2Position:
 
         reward_token_symbol, reward_token_address = [v for k, v in self.get_pool_info()["exchange"]["reward"].items()]
 
-        reward_value = reward_amount * get_token_price(reward_token_symbol)
+        reward_usd = reward_amount * get_token_price(reward_token_symbol)
 
-        return reward_amount, reward_value, reward_token_address, reward_token_symbol
+        # return reward_amount, reward_usd, reward_token_address, reward_token_symbol
+        return {"reward_token": reward_amount, "reward_usd": reward_usd, "reward_token_address": reward_token_address,
+                "reward_token_symbol": reward_token_symbol}
 
     def get_debt_ratio(self) -> float:
         """Return the position's debt ratio percentage in decimal form (10% = 0.10)"""
@@ -155,7 +159,7 @@ class AlphaHomoraV2Position:
 
         return borrow_credit / collateral_credit
 
-    def get_position_value(self) -> tuple[float, float, float, float, float, float]:
+    def get_position_value(self) -> dict:
         """
         Get equity, debt, and total position value in AVAX and USD.
 
@@ -212,10 +216,10 @@ class AlphaHomoraV2Position:
         total_equity_avax = position_value_avax - debt_value_avax
         total_equity_usd = position_value_usd - debt_value_usd
 
-        return total_equity_avax, total_equity_usd, debt_value_avax, debt_value_usd, position_value_avax, position_value_usd
-        # return {"equity_avax": total_equity_avax, "equity_usd": total_equity_usd,
-        #         "debt_avax": debt_value_avax, "debt_usd": debt_value_usd,
-        #         "position_avax": position_value_avax, "position_usd": position_value_usd}
+        # return total_equity_avax, total_equity_usd, debt_value_avax, debt_value_usd, position_value_avax, position_value_usd
+        return {"equity_avax": total_equity_avax, "equity_usd": total_equity_usd,
+                "debt_avax": debt_value_avax, "debt_usd": debt_value_usd,
+                "position_avax": position_value_avax, "position_usd": position_value_usd}
 
         
     """ ------------------------------------------ UTILITY ------------------------------------------ """
@@ -275,6 +279,8 @@ class AlphaHomoraV2Position:
         """
         :param function_call: The uncalled and prepared contract method to sign and send
         """
+        self.has_private_key()
+
         txn = function_call.buildTransaction({"nonce": self.w3_provider.eth.get_transaction_count(self.owner),
                                               "from": self.owner})
         signed_txn = self.w3_provider.eth.account.sign_transaction(
@@ -307,3 +313,9 @@ class AlphaHomoraV2Position:
         encoded_contract_data = decoded_bank_transaction[1]['data']
 
         return decoded_bank_transaction, self.platform.spell_contract.decode_function_input(encoded_contract_data)
+
+    def has_private_key(self):
+        if self.private_key is None:
+            raise Exception("This method requires the position holder's private key to sign the transaction.\n"
+                            "Please set a value for the 'owner_private_key' class init attribute.")
+
