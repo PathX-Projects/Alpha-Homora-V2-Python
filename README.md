@@ -7,9 +7,8 @@
         A Python3.9+ package that models Alpha Homora V2 positions to simplify interaction with their smart contracts in your Python projects.
     </p>
     <h3><strong>Current Features</strong></h3>
-    <i>Fetch Position Data</i><br>
-    <i>Harvest Rewards</i><br>
-    <i>Close Position</i><br>
+    <i>Get Rewards Value | Get Position Value | Get Debt Ratio | Get LP Info</i><br>
+    <i>Harvest Rewards | Close Position</i><br>
     <h3><strong>Current Supported DEXes</strong></h3>
     <i>Pangolin V2 on Avalanche</i><br>
     <i>Trader Joe on Avalanche</i><br>
