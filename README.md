@@ -48,20 +48,20 @@ When updates are made to the package, the version will automatically be incremen
 
 How to use the package:
 
-- Import the package into your Python script:
+1. Import the package into your Python script:
     ```python
     from alpha_homora_v2.util import get_web3_provider
     from alpha_homora_v2.position import AlphaHomoraV2Position
     ```
 
-- Create your Web3 provider object to interact with the network:
+2. Create your Web3 provider object to interact with the network:
     ```python
     NETWORK_RPC_URL = "your_rpc_url"
 
     provider = get_provider(NETWORK_RPC_URL)
     ```
 
-- Creating an [AlphaHomoraV2Position](alpha_homora_v2/position.py) instance requires the following:
+3. Creating an [AlphaHomoraV2Position](alpha_homora_v2/position.py) instance requires the following:
     - A web3 provider object
     - Your position ID (an integer)
         - This ID should match your position on Alpha Homora, without the "#"
@@ -84,19 +84,32 @@ How to use the package:
     position = AlphaHomoraV2Position(
                web3_provider=provider,
                position_id=11049,
-               position_symbol="AVAX/USDT.e",
                dex="Pangolin V2",
                owner_wallet_address="0x...",
-               owner_private_key="123abc456efg789hij..."
+               owner_private_key="123abc456efg789hij..." # (Optional - see step 4)
                )
     ```
-- Use your position instance to interact with the Alpha Homora V2 position smart contracts on the network:
+4. Use your position instance to interact with the Alpha Homora V2 position smart contracts on the network:
     ```python
-    # Harvest rewards:
-    position.claim_all_rewards()
+    """ Informational Methods (Private Key not Required) """
+    # Get value of harvestable rewards:
+    position.get_rewards_value()
+
+    # Get current debt ratio:
+    position.get_debt_ratio()
+
+    # Get position value (equity, debt, and position value):
+    position.get_position_value()
 
     # get LP pool info:
     position.get_pool_info()
+
+    # (WIP) Get current pool APY
+    position.get_current_apy()
+    
+    """ Transactional Methods (Private Key Required) """
+    # Harvest available rewards:
+    position.claim_all_rewards()
 
     # Close the position:
     position.close()
@@ -114,5 +127,10 @@ pip uninstall alpha-homora-v2
 1. ~~Get position value of equity and debt~~
 2. ~~Get current debt ratio~~
 3. Get outstanding rewards value in native rewards token and USD
+    - ~~Pangolin V2~~
+    - Trader Joe
 4. Get current pool APY
-5. Integrate with Ethereum network exchanges
+5. Integrate with Alpha Homora V2 Networks:
+    - ~~Avalanche~~
+    - Ethereum
+    - Fantom
