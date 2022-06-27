@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='alpha_homora_v2',
-    version='0.0.4',
+    version='0.9.9',
     author='Harrison Schick',
     author_email='hschickdevs@gmail.com',
     description='Python package that allows for interacting with Alpha Homora v2 position smart contracts',

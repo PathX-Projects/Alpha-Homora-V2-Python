@@ -149,6 +149,5 @@ cython_debug/
 .idea
 package_testing.ipynb
 Result/*
-
-
-
+dev_ref/*
+testing.py
