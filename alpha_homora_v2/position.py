@@ -159,6 +159,10 @@ class AlphaHomoraV2Position:
 
         return borrow_credit / collateral_credit
 
+    def get_current_apy(self) -> float:
+        """Return the current APY for the LP"""
+        raise NotImplementedError
+
     def get_position_value(self) -> dict:
         """
         Get equity, debt, and total position value in AVAX and USD.
