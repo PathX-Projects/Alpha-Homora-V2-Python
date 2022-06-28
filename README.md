@@ -7,11 +7,12 @@
         A Python3.9+ package that models Alpha Homora V2 positions to simplify interaction with their smart contracts in your Python projects.
     </p>
     <h3><strong>Current Features</strong></h3>
-    <i>Get Rewards Value | Get Position Value | Get Debt Ratio | Get LP Info</i><br>
+    <i>Get Rewards Value | Get Position Value | Get Debt Ratio | Get LP Info | <del>Get Current APY</del></i><br>
     <i>Harvest Rewards | Close Position</i><br>
-    <h3><strong>Current Supported DEXes</strong></h3>
-    <i>Pangolin V2 on Avalanche</i><br>
-    <i>Trader Joe on Avalanche</i><br>
+    <h3><strong>Current Supported Networks</strong></h3>
+    <i>Avalanche</i><br>
+    <i><del>Ethereum</del> (WIP)</i><br>
+    <i><del>Fantom</del> (WIP)</i><br>
 </div>
 <br>
 
@@ -47,10 +48,12 @@ When updates are made to the package, the version will automatically be incremen
 
 How to use the package:
 
+### For Avalanche Positions:
+
 1. Import the package into your Python script:
     ```python
     from alpha_homora_v2.util import get_web3_provider
-    from alpha_homora_v2.position import AlphaHomoraV2Position
+    from alpha_homora_v2.position import AvalanchePosition
     ```
 
 2. Create your Web3 provider object to interact with the network:
@@ -60,7 +63,7 @@ How to use the package:
     provider = get_provider(NETWORK_RPC_URL)
     ```
 
-3. Creating an [AlphaHomoraV2Position](alpha_homora_v2/position.py) instance requires the following:
+3. Creating an [AvalanchePosition](alpha_homora_v2/position.py) instance requires the following:
     - A web3 provider object
     - Your position ID (an integer)
         - This ID should match your position on Alpha Homora, without the "#"
@@ -80,7 +83,7 @@ How to use the package:
 
     Once you've gathered all of these variables, you can create the position instance like this example below:
     ```python
-    position = AlphaHomoraV2Position(
+    position = AvalanchePosition(
                web3_provider=provider,
                position_id=11049,
                dex="Pangolin V2",
@@ -89,30 +92,35 @@ How to use the package:
                )
     ```
 4. Use your position instance to interact with the Alpha Homora V2 position smart contracts on the network:
-    ```python
-    """ Informational Methods (Private Key not Required) """
-    # Get value of harvestable rewards:
-    position.get_rewards_value()
+   - Informational Methods
+     - Return data like a JSON API
+     - Private wallet key ***not required*** for use
+     ```python
+     # Get value of harvestable rewards:
+     position.get_rewards_value()
 
-    # Get current debt ratio:
-    position.get_debt_ratio()
+     # Get current debt ratio:
+     position.get_debt_ratio()
 
-    # Get position value (equity, debt, and position value):
-    position.get_position_value()
+     # Get position value (equity, debt, and position value):
+     position.get_position_value()
 
-    # get LP pool info:
-    position.get_pool_info()
+     # get LP pool info:
+     position.get_pool_info()
 
-    # (WIP) Get current pool APY
-    position.get_current_apy()
-    
-    """ Transactional Methods (Private Key Required) """
-    # Harvest available rewards:
-    position.claim_all_rewards()
+     # (WIP) Get current pool APY
+     position.get_current_apy()
+     ```
+   - Transactional Methods:
+     - Return a [TransactionReceipt](alpha_homora_v2/receipt.py) object with success
+     - Private wallet key ***required*** for use to sign transactions
+     ```python
+     # Harvest available rewards:
+     position.claim_all_rewards()
 
-    # Close the position:
-    position.close()
-    ```
+     # Close the position:
+     position.close()
+     ```
 
 ## Uninstallation:
 
