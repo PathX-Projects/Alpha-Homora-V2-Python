@@ -133,11 +133,11 @@ pip uninstall alpha-homora-v2
 
 - [x] Get position value of equity and debt
 - [x] Get current debt ratio
-- [x] Get outstanding rewards value in native rewards token and USD
+- [ ] Get outstanding rewards value in native rewards token and USD
     - [x] Pangolin V2
     - [ ] Trader Joe
 - [ ] Get current pool APY
-- [ ] Integrate with Alpha Homora V2 Networks:
+- [ ] Integrate with All Supported Alpha Homora V2 Networks:
     - [x] Avalanche
     - [ ] Ethereum
     - [ ] Fantom
