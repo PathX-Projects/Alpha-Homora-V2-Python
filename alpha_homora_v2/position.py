@@ -97,7 +97,7 @@ class AlphaHomoraV2Position:
         self.has_private_key()
 
         try:
-            if self.get_rewards_value()[0] == 0:
+            if self.get_rewards_value()['reward_token'] == 0:
                 return None
         except NotImplementedError:
             pass
@@ -124,8 +124,8 @@ class AlphaHomoraV2Position:
         Get the amount of outstanding yield farming rewards in the position.
 
         :return:
-            - reward_amount (float) (in the native reward token)
-            - reward_value (float) (in USD)
+            - reward_token (float) (in the native reward token)
+            - reward_usd (float) (in USD)
             - reward_token_address (str)
             - reward_token_symbol (str)
         """
