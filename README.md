@@ -57,7 +57,7 @@ How to use the package:
     ```python
     NETWORK_RPC_URL = "your_rpc_url"
 
-    provider = get_provider(NETWORK_RPC_URL)
+    provider = get_web3_provider(NETWORK_RPC_URL)
     ```
 
 3. Creating an [AlphaHomoraV2Position](alpha_homora_v2/position.py) instance requires the following:
