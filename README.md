@@ -4,14 +4,14 @@
   <br></br>
   <h2 align="center"><strong>Alpha-Homora-V2-Python</strong></h2>
     <p align="center">
-        A Python3.9+ package that models Alpha Homora V2 positions to simplify interaction with their smart contracts in your Python projects.
+        A Python3.9+ package that models open Alpha Homora V2 positions to simplify interaction with their smart contracts in your Python projects.
     </p>
     <h3><strong>Current Features</strong></h3>
-    <i>Get Rewards Value | Get Position Value | Get Debt Ratio | Get LP Info</i><br>
+    <i>Get Rewards Value | Get Position Value | Get Debt Ratio | Get LP Info | <del>Get Current APY</del></i><br>
     <i>Harvest Rewards | Close Position</i><br>
-    <h3><strong>Current Supported DEXes</strong></h3>
-    <i>Pangolin V2 on Avalanche</i><br>
-    <i>Trader Joe on Avalanche</i><br>
+    <h3><strong>Current Supported Networks</strong></h3>
+    <i>Avalanche</i><br>
+    <i><del>Ethereum</del> (WIP)</i><br>
 </div>
 <br>
 
@@ -47,21 +47,20 @@ When updates are made to the package, the version will automatically be incremen
 
 How to use the package:
 
+### For Avalanche Positions:
+
 1. Import the package into your Python script:
     ```python
     from alpha_homora_v2.util import get_web3_provider
-    from alpha_homora_v2.position import AlphaHomoraV2Position
+    from alpha_homora_v2.position import AvalanchePosition
     ```
 
-2. Create your Web3 provider object to interact with the network:
+2. **(Optional)** Create your Web3 provider object to interact with the network:
     ```python
     NETWORK_RPC_URL = "your_rpc_url"
-
     provider = get_web3_provider(NETWORK_RPC_URL)
     ```
-
-3. Creating an [AlphaHomoraV2Position](alpha_homora_v2/position.py) instance requires the following:
-    - A web3 provider object
+3. Creating an [AvalanchePosition](alpha_homora_v2/position.py) instance requires the following:
     - Your position ID (an integer)
         - This ID should match your position on Alpha Homora, without the "#"
         - ![demo](img/id_highlight.png)
@@ -71,48 +70,69 @@ How to use the package:
         - This parameter should exactly match the token symbol/pair displayed on your Alpha Homora as shown below.
         - ![demo](img/token_highlight.png)
     -->
-  
+    <!--- DEPRECATED
     - The DEX identifier (a string)
         - This parameter should exactly match the DEX identifier displayed on your Alpha Homora position as shown below.
         - ![demo](img/dex_highlight.png)
-    - your public and private wallet keys (both a string)
-        - Your private key is required to sign transactions
+    -->
+
+    - your public wallet key
+    - **(Optional)** your private wallet key
+        - Your private key is required to sign transactional methods
+    - **(Optional)** A web3 provider object
+      - If none is passed, an HTTP provider will be created with the [default Avalanche RPC URL](https://api.avax.network/ext/bc/C/rpc)
 
     Once you've gathered all of these variables, you can create the position instance like this example below:
     ```python
-    position = AlphaHomoraV2Position(
-               web3_provider=provider,
+    position = AvalanchePosition(
                position_id=11049,
-               dex="Pangolin V2",
                owner_wallet_address="0x...",
-               owner_private_key="123abc456efg789hij..." # (Optional - see step 4)
-               )
+               owner_private_key="123abc456efg789hij...", # <- Optional - see step 4
+               web3_provider=provider)  # <- Optional If you'd like to use a custom provider
     ```
-4. Use your position instance to interact with the Alpha Homora V2 position smart contracts on the network:
-    ```python
-    """ Informational Methods (Private Key not Required) """
-    # Get value of harvestable rewards:
-    position.get_rewards_value()
+4. Alternatively, get all open positions ([AvalanchePosition](alpha_homora_v2/position.py) objects) by owner wallet address:
+   ```python
+   from alpha_homora_v2.position import get_avax_positions_by_owner
+   
+   positions = get_avax_positions_by_owner(owner_address="owner_wallet_address",
+                                           owner_private_key="owner_private_key", # <- Optional
+                                           web3_provider=provider)  # <- Optional
+   
+   # NOTE: Passing the private key is optional, but required if you want to use transactional methods on the returned AvalanchePosition object(s).
+   ```
+5. Use your position instance(s) to interact with the Alpha Homora V2 position smart contracts on the network:
+   - Informational Methods
+     - Return JSON data
+     - Private wallet key ***not required*** for use
+     ```python
+     # Get value of harvestable rewards:
+     position.get_rewards_value()
 
-    # Get current debt ratio:
-    position.get_debt_ratio()
+     # Get current debt ratio:
+     position.get_debt_ratio()
 
-    # Get position value (equity, debt, and position value):
-    position.get_position_value()
+     # Get the current leverage ratio:
+     position.get_leverage_ratio()
 
-    # get LP pool info:
-    position.get_pool_info()
+     # Get position value (equity, debt, and position value):
+     position.get_position_value()
 
-    # (WIP) Get current pool APY
-    position.get_current_apy()
-    
-    """ Transactional Methods (Private Key Required) """
-    # Harvest available rewards:
-    position.claim_all_rewards()
+     # (WIP) Get current pool APY (Only returns trading and farmng APY)
+     position.get_current_apy()
 
-    # Close the position:
-    position.close()
-    ```
+     # get LP pool info:
+     position.pool
+     ```
+   - Transactional Methods:
+     - Return a [TransactionReceipt](alpha_homora_v2/receipt.py) object upon success
+     - Private wallet key ***required*** for use to sign transactions
+     ```python
+     # Harvest available rewards:
+     position.claim_all_rewards()
+
+     # Close the position:
+     position.close()
+     ```
 
 ## Uninstallation:
 
@@ -121,15 +141,26 @@ Uninstall the package like any other Python package using the pip uninstall comm
 pip uninstall alpha-homora-v2
 ```
 
-## Roadmap:
+## Feature Roadmap:
 
-1. ~~Get position value of equity and debt~~
-2. ~~Get current debt ratio~~
-3. Get outstanding rewards value in native rewards token and USD
-    - ~~Pangolin V2~~
-    - Trader Joe
-4. Get current pool APY
-5. Integrate with Alpha Homora V2 Networks:
-    - ~~Avalanche~~
-    - Ethereum
-    - Fantom
+- [ ] Avalanche:
+    - [x] Get all open positions by owner wallet address
+    - [x] Harvest Position Rewards
+    - [x] Close Position
+    - [x] Get position value of equity and debt
+    - [x] Get current debt ratio
+    - [ ] Get outstanding rewards value in native rewards token and USD
+        - [x] Pangolin V2
+        - [ ] Trader Joe
+    - [ ] Get current pool APY
+    - [ ] Add Liquidity
+    - [ ] Remove Liquidity
+- [ ] Ethereum:
+    - [ ] Harvest Position Rewards
+    - [ ] Close Position
+    - [ ] Get position value of equity and debt
+    - [ ] Get current debt ratio
+    - [ ] Get outstanding rewards value in native rewards token and USD
+    - [ ] Get current pool APY
+    - [ ] Add Liquidity
+    - [ ] Remove Liquidity

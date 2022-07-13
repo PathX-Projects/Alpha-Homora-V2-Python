@@ -1,9 +1,12 @@
 from setuptools import setup, find_packages
+import sys
 
+if sys.version_info < (3, 9):
+    sys.exit('Python 3.9+ required to install this package. Install it here: https://www.python.org/downloads/')
 
 setup(
     name='alpha_homora_v2',
-    version='0.9.9',
+    version='1.0.0',
     author='Harrison Schick',
     author_email='hschickdevs@gmail.com',
     description='Python package that allows for interacting with Alpha Homora v2 position smart contracts',

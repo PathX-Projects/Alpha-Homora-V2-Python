@@ -1,12 +1,10 @@
-import json
-from os.path import join, abspath, dirname
-from os import getcwd, pardir
 from typing import Optional, Union
 
 from .resources.abi_reference import *
-from .util import ContractInstanceFunc, cov_from, get_token_info_from_ref
-from .spell import SpellClient, PangolinV2Client, TraderJoeV1Client
+from .util import ContractInstanceFunc, cov_from, get_token_info_from_ref, get_web3_provider
+from .spell import SpellClient, PangolinV2Client, TraderJoeClient
 from .oracle import get_token_price
+from .receipt import TransactionReceipt, build_receipt
 
 import requests
 from web3 import Web3
@@ -15,36 +13,38 @@ from web3.constants import MAX_INT
 from web3.exceptions import ContractLogicError
 
 
-class AlphaHomoraV2Position:
-    def __init__(self, web3_provider: Web3, position_id: int, dex: str, owner_wallet_address: str,
-                 owner_private_key: str = None, position_type: str = "Yield Farming"):
+class AvalanchePosition:
+    def __init__(self, position_id: int, owner_wallet_address: str, owner_private_key: str = None,
+                 web3_provider: Web3 = None):
         """
         :param web3_provider: The Web3 object used to interact with the Alpha Homora V2 position's chain
                               (ex. Web3(Web3.HTTPProvider(your_network_rpc_url)))
         :param position_id: The Alpha Homora V2 position ID
-        :param position_symbol: The symbol for the tokens in the position, exactly as shown on Alpha Homora V2.
-                                Used to fetch data about the position.
-                                (e.g. AVAX/USDT.e for the Pangolin V2 Yield farming position on Avalanche)
-        :param dex: The dex identifier exactly as shown on Alpha Homora (e.g. Pangolin V2)
         :param position_type: The type of position held. Options include: NOT YET IMPLEMENTED
         :param owner_wallet_address: The wallet address of the position owner
         :param owner_private_key: The private key of the position owner's wallet (for transaction signing)
         """
+
         self.pos_id = position_id
-        # self.symbol = position_symbol
-        self.dex = dex
-        self.w3_provider = web3_provider
+        self.owner = owner_wallet_address
+        self.private_key = owner_private_key
+
+        self.w3_provider = web3_provider if web3_provider is not None else \
+            get_web3_provider("https://api.avax.network/ext/bc/C/rpc")
+
         self.homora_bank = ContractInstanceFunc(web3_provider=self.w3_provider,
                                                 json_abi_file=HomoraBank_ABI[0],
                                                 contract_address=HomoraBank_ABI[1])
-        self.platform = self.get_platform(dex)
-        self.owner = owner_wallet_address
-        self.private_key = owner_private_key
-        self.position_type = position_type
-        self.symbol = self.get_pool_info()['name']
+
+        self.pool_key = self.get_position()['pool']['key']
+        self.pool = self.get_pool_info()
+        self.symbol = self.pool['name']
+        self.dex = self.pool['exchange']['name']
+
+        self.platform = self.get_platform()
 
     """ ------------------------------------------ PRIMARY ------------------------------------------ """
-    def close(self) -> tuple[str, dict]:
+    def close(self) -> TransactionReceipt:
         """
         Close the position if it is open
 
@@ -54,12 +54,10 @@ class AlphaHomoraV2Position:
         """
         self.has_private_key()
 
-        pool_info = self.get_pool_info()
-
-        underlying_tokens = pool_info['tokens']
+        underlying_tokens = self.pool['tokens']
 
         try:
-            spell_address = Web3.toChecksumAddress(pool_info['spellAddress'])
+            spell_address = Web3.toChecksumAddress(self.pool['spellAddress'])
         except KeyError:
             spell_address = Web3.toChecksumAddress(self.platform.spell_contract.address)
 
@@ -69,7 +67,7 @@ class AlphaHomoraV2Position:
         position_size = self.get_position_info()[-1]
 
         try:
-            lp_balance = self.get_token_borrow_balance(pool_info['lpTokenAddress'])
+            lp_balance = self.get_token_borrow_balance(self.pool['lpTokenAddress'])
         except ContractLogicError:
             lp_balance = 0
 
@@ -78,13 +76,9 @@ class AlphaHomoraV2Position:
 
         encoded_bank_func = self.homora_bank.functions.execute(self.pos_id, spell_address, encoded_spell_func)
 
-        tx_hash, receipt = self.sign_and_send(
-            encoded_bank_func
-        )
+        return self.sign_and_send(encoded_bank_func)
 
-        return tx_hash, receipt
-
-    def claim_all_rewards(self) -> Union[tuple[str, dict], None]:
+    def claim_all_rewards(self) -> Union[TransactionReceipt, None]:
         """
         Harvests available position rewards
 
@@ -97,6 +91,7 @@ class AlphaHomoraV2Position:
         self.has_private_key()
 
         try:
+            # Prevent needless gas spending
             if self.get_rewards_value()['reward_token'] == 0:
                 return None
         except NotImplementedError:
@@ -113,11 +108,7 @@ class AlphaHomoraV2Position:
 
         encoded_bank_func = self.homora_bank.functions.execute(self.pos_id, spell_address, encoded_spell_func)
 
-        tx_hash, receipt = self.sign_and_send(
-            encoded_bank_func
-        )
-
-        return tx_hash, receipt
+        return self.sign_and_send(encoded_bank_func)
 
     def get_rewards_value(self) -> dict:  # tuple[float, float, str, str]
         """
@@ -129,25 +120,32 @@ class AlphaHomoraV2Position:
             - reward_token_address (str)
             - reward_token_symbol (str)
         """
-        if self.dex != "Pangolin V2":
-            raise NotImplementedError("This feature is currently only available for positions on the Pangolin V2 DEX")
-        
         owner, coll_token, coll_id, collateral_size = self.get_position_info()
-
         pool_info = self.platform.get_pool_info(coll_id)
-        entryRewardPerShare = pool_info['entryRewardPerShare'] / 1e18
-        accRewardPerShare = pool_info['accRewardPerShare'] / 1e18
+        start_reward_per_share = pool_info['entryRewardPerShare']
+        end_reward_per_share = pool_info['accRewardPerShare']
 
-        if accRewardPerShare >= entryRewardPerShare:
-            reward_amount = collateral_size * (accRewardPerShare - entryRewardPerShare) / 1e12
+        if self.dex == "Trader Joe":
+            if self.pool['wTokenType'].startswith("WMasterChef"):
+                precision = 10 ** 12
+                reward_amount = collateral_size * (end_reward_per_share - start_reward_per_share) // precision
+            else:  # Accounts for BoostedMasterChef positions
+                wrapper_token_per_share = pool_info['wrapper_token_per_share']
+                lp_amt = pool_info['lpAmt']
+                reward_debt = pool_info['rewardDebt']
+                precision = 10 ** 18
+
+                extra_reward_per_share = end_reward_per_share - (reward_debt * precision // lp_amt)
+                end_token_per_share = wrapper_token_per_share + extra_reward_per_share
+                reward_amount = (collateral_size * (end_token_per_share - start_reward_per_share) // precision) / precision
         else:
-            reward_amount = 0.0
+            # entryRewardPerShare = pool_info['entryRewardPerShare'] / 1e18
+            # accRewardPerShare = pool_info['accRewardPerShare'] / 1e18
+            reward_amount = collateral_size * ((end_reward_per_share / 1e18) - (start_reward_per_share / 1e18)) / 1e12
 
         reward_token_symbol, reward_token_address = [v for k, v in self.get_pool_info()["exchange"]["reward"].items()]
-
         reward_usd = reward_amount * get_token_price(reward_token_symbol)
 
-        # return reward_amount, reward_usd, reward_token_address, reward_token_symbol
         return {"reward_token": reward_amount, "reward_usd": reward_usd, "reward_token_address": reward_token_address,
                 "reward_token_symbol": reward_token_symbol}
 
@@ -157,11 +155,50 @@ class AlphaHomoraV2Position:
         collateral_credit = self.homora_bank.functions.getCollateralETHValue(self.pos_id).call()
         borrow_credit = self.homora_bank.functions.getBorrowETHValue(self.pos_id).call()
 
-        return borrow_credit / collateral_credit
+        try:
+            return borrow_credit / collateral_credit
+        except ZeroDivisionError:
+            return 0.0
 
-    def get_current_apy(self) -> float:
-        """Return the current APY for the LP"""
-        raise NotImplementedError
+    def get_leverage_ratio(self) -> float:
+        """Return the position's leverage ratio"""
+        position_values = self.get_position_value()
+
+        coll_value = position_values['position_usd']
+        debt_value = position_values['debt_usd']
+        # print(f"Coll: {coll_value} | Debt: {debt_value}")
+        try:
+            return coll_value / (coll_value - debt_value)
+        except ZeroDivisionError:
+            return 0.0
+
+    def get_current_apy(self) -> dict:
+        """
+        Return the current APY for the LP from the official Alpha Homora V2 /apys API endpoint
+
+        :return: (dict)
+            - APY (float) - The current net APY (farming APY + trading APY - borrow fees)
+            - breakdown (dict) - Each individual component of the net APY
+                - farmingAPY (float)
+                - tradingFeeAPY (float)
+                - borrowAPY (-float)
+        """
+        try:
+            r = requests.get(f"https://api.homora.alphaventuredao.io/v2/{self.platform.network_chain_id}/apys")
+            if r.status_code != 200:
+                raise Exception(f"{r.status_code}, {r.text}")
+
+            pool_key = self.get_pool_info()['key']
+            apy_data = r.json()[pool_key]
+
+            leverage = self.get_leverage_ratio()
+            # print("Leverage:", leverage)
+
+            return {"totalAPY": leverage * float(apy_data['totalAPY']),
+                    "tradingFeeAPY": leverage * float(apy_data['tradingFeeAPY']),
+                    "farmingAPY": leverage * float(apy_data['farmingAPY'])}
+        except Exception as exc:
+            raise Exception(f"Could not get current APY for position: {exc}")
 
     def get_position_value(self) -> dict:
         """
@@ -225,16 +262,49 @@ class AlphaHomoraV2Position:
                 "debt_avax": debt_value_avax, "debt_usd": debt_value_usd,
                 "position_avax": position_value_avax, "position_usd": position_value_usd}
 
-        
     """ ------------------------------------------ UTILITY ------------------------------------------ """
-    def get_platform(self, identifier: str) -> SpellClient:
+    def get_position(self) -> dict:
+        """
+        Returns the position matching the owner wallet address and position ID on Avalanche
+
+        {id: int
+        owner: str
+        collateralSize: str (int)
+        pool: {key: str}
+        collateralCredit: str (int)
+        borrowCredit: str (int)
+        debtRatio: str (float)}
+        """
+        r = requests.get("https://api.homora.alphaventuredao.io/v2/43114/positions")
+        if r.status_code != 200:
+            raise Exception(f"Could not fetch position: {r.status_code, r.text}")
+
+        try:
+            return list(filter(lambda p: int(p['id']) == self.pos_id and p['owner'].lower() == self.owner.lower(),
+                               r.json()))[0]
+        except IndexError:
+            raise IndexError(f"Could not fetch pool for position_id {self.pos_id} owned by {self.owner} "
+                             f"(If you just opened the position, please retry in a few minutes)")
+
+    def get_platform(self) -> SpellClient:
         """Determine what dex the position is on (i.e. Trader Joe, Pangolin V2, Sushiswap, etc)"""
-        if identifier == "Pangolin V2":
+        if self.dex == "Pangolin V2":
             return PangolinV2Client(self.w3_provider)
-        elif identifier == "Trader Joe":
-            return TraderJoeV1Client(self.w3_provider)
+        elif self.dex == "Trader Joe":
+            try:
+                spell_address = self.pool['spellAddress']
+            except KeyError:
+                spell_address = self.pool['exchange']['spellAddress']
+            try:
+                staking_address = self.pool['stakingAddress']
+            except KeyError:
+                staking_address = self.pool['exchange']['stakingAddress']
+            return TraderJoeClient(self.w3_provider,
+                                   spell_address=spell_address,
+                                   w_token_type=self.pool['wTokenType'], w_token_address=self.pool['wTokenAddress'],
+                                   staking_address=staking_address)
         else:
-            raise NotImplementedError(f"Spell client not yet implemented for the '{identifier}' DEX. "
+            raise NotImplementedError(f"Spell client not yet implemented for the '{self.dex}' DEX. "
                                       f"Please make sure that the dex entered is exactly as shown on your Alpha Homora V2 position.")
 
     def get_position_info(self) -> list:
@@ -266,20 +336,18 @@ class AlphaHomoraV2Position:
         if r.status_code != 200:
             raise Exception(f"Could not fetch pools: {r.status_code, r.text}")
 
-        coll_id = self.get_position_info()[2]
-        pid = self.platform.decode_collid(coll_id)[0]
+        pool = list(filter(lambda p: p['key'] == self.pool_key, r.json()))
+        if len(pool) == 0:
+            raise IndexError(f"Could not find pool matching key: {self.pool_key}")
+        if len(pool) > 1:
+            raise IndexError(f"Found multiple pools matching key: {self.pool_key}")
 
-        for pool in r.json():
-            # Criteria:
-            if pool['pid'] == pid and pool['exchange']['name'] == self.dex:
-                return pool
-        else:
-            raise Exception(f"No {self.dex} pool found with PID: {pid}")
+        return pool[0]
 
     def verify_ownership(self) -> None:
         pass
 
-    def sign_and_send(self, function_call: ContractFunction):
+    def sign_and_send(self, function_call: ContractFunction) -> TransactionReceipt:
         """
         :param function_call: The uncalled and prepared contract method to sign and send
         """
@@ -294,7 +362,7 @@ class AlphaHomoraV2Position:
 
         receipt = dict(self.w3_provider.eth.wait_for_transaction_receipt(tx_hash))
 
-        return tx_hash.hex(), receipt
+        return build_receipt(receipt)
 
     def decode_transaction_data(self, transaction_address: Optional) -> tuple:
         """
@@ -318,8 +386,49 @@ class AlphaHomoraV2Position:
 
         return decoded_bank_transaction, self.platform.spell_contract.decode_function_input(encoded_contract_data)
 
+    @staticmethod
+    def get_cream_borrow_rates(network: str) -> list[dict]:
+        assert network in ['eth', 'avalanche', 'fantom', 'ironbank']
+
+        return requests.get(f"https://api.cream.finance/api/v1/rates?comptroller={network}").json()['borrowRates']
+
     def has_private_key(self):
         if self.private_key is None:
             raise Exception("This method requires the position holder's private key to sign the transaction.\n"
                             "Please set a value for the 'owner_private_key' class init attribute.")
 
+
+class EthereumPosition:
+    def __int__(self, *a, **kw):
+        raise NotImplementedError("Ethereum positions are not yet available.")
+
+
+class FantomPosition:
+    def __int__(self, *a, **kw):
+        raise NotImplementedError("Fantom positions are not yet available.")
+
+
+def get_avax_positions_by_owner(owner_address: str, owner_private_key: str = None, web3_provider: Web3 = None
+                                          ) -> list[AvalanchePosition]:
+    """
+    Get all pool positions on Avalanche held by the provided owner address
+
+    :param owner_address: The owner of the position (address str)
+    :param web3_provider: Your Web3 provider object to interact with the network
+    :param owner_private_key: (optional) The owner's private key for using transactional methods from the AvalanchePosition object(s)
+    """
+    owned_positions = list(filter(lambda pos: pos["owner"].lower() == owner_address.lower(),
+                                  requests.get("https://api.homora.alphaventuredao.io/v2/43114/positions").json()))
+    if len(owned_positions) == 0:
+        return owned_positions
+
+    pools = requests.get("https://api.homora.alphaventuredao.io/v2/43114/pools").json()
+
+    obj = []
+    for position in owned_positions:
+        pos_key = position['pool']['key']
+        pool_data = list(filter(lambda pool: pool['key'] == pos_key, pools))[0]
+        obj.append(AvalanchePosition(web3_provider=web3_provider, position_id=position['id'],
+                                     owner_wallet_address=owner_address, owner_private_key=owner_private_key))
+
+    return obj
