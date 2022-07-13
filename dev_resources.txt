@@ -1,5 +1,11 @@
 Alpha Homora V2 Avalanche Contract Addresses:
 https://docs.alphaventuredao.io/homora-v2/v/homora-v2-avalanche/resources/contract-addresses
 
-# Avalanche AHV2 FAQ:
-https://docs.alphaventuredao.io/homora-v2/v/homora-v2-avalanche/resources/contract-addresses#query-faq 
+Avalanche AHV2 FAQ:
+https://docs.alphaventuredao.io/homora-v2/v/homora-v2-avalanche/resources/contract-addresses#query-faq
+
+Alpha Homora V2 AP INFO:
+https://docs.alphaventuredao.io/homora-v2/developer-guides/api#api
+
+Joe Core GitHub (Contains all contracts):
+https://github.com/traderjoe-xyz/joe-core

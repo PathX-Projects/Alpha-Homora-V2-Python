@@ -14,6 +14,10 @@ def cov_from(amount):
     return float(Web3.fromWei(amount, 'ether'))
 
 
+def checksum(address: str) -> str:
+    return Web3.toChecksumAddress(address)
+
+
 def get_web3_provider(network_rpc_url: str) -> Web3:
     """Returns a Web3 connection provider object"""
     provider = Web3(Web3.HTTPProvider(network_rpc_url))
@@ -56,6 +60,7 @@ def store_abi(abi_url: str, abi_filename: str, abi_path: str = None) -> None:
     with open(path, "w") as json_file:
         json_file.write(json.dumps(contract_abi, indent=2))
 
+
 def get_token_info_from_ref(identifier: str) -> Union[dict, None]:
     """
     Get the token info row (dict) from the reference file (resources/token_metadata.csv)
@@ -72,7 +77,12 @@ def get_token_info_from_ref(identifier: str) -> Union[dict, None]:
                 return row
     return None
 
+
 def get_all_pool_underlying_token_addresses() -> dict:
     """Did not use exchange identifier because this was used to aggregate all supported tokens for the reference in resources"""
     r = requests.get("https://homora-api.alphafinance.io/v2/43114/pools").json()
     return {pool['name']: [(pool['name'].split('/')[i], token) for i, token in enumerate(pool['tokens'])] for pool in r}
+
+
+def get_avalanche_pool_wtoken_types(dex: str):
+    return list(set(pool['wTokenType'] for pool in requests.get("https://homora-api.alphafinance.io/v2/43114/pools").json() if pool['exchange']['name'] == dex))
