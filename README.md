@@ -166,4 +166,4 @@ pip uninstall alpha-homora-v2
 
 ## Contribution:
 
-Contributions are welcome! Please read the [contribution guidelines](CONTRIBUTING.rst) to learn more about how to contribute to this project.
+Contributions are welcome! Please read the [contribution guidelines](CONTRIBUTING.md) to learn more about how to contribute to this project.
