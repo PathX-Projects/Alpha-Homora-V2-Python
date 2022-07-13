@@ -149,9 +149,7 @@ pip uninstall alpha-homora-v2
     - [x] Close Position
     - [x] Get position value of equity and debt
     - [x] Get current debt ratio
-    - [ ] Get outstanding rewards value in native rewards token and USD
-        - [x] Pangolin V2
-        - [ ] Trader Joe
+    - [x] Get outstanding rewards value in native rewards token and USD
     - [ ] Get current pool APY
     - [ ] Add Liquidity
     - [ ] Remove Liquidity
