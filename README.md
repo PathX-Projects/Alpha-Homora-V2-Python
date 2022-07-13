@@ -23,6 +23,7 @@
     <li><a href="#usage">Usage</a></li>
     <li><a href="#uninstallation">Uninstallation</a></li>
     <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#contribution">Contribution</a></li>
   </ol>
 </details>
 
@@ -141,7 +142,7 @@ Uninstall the package like any other Python package using the pip uninstall comm
 pip uninstall alpha-homora-v2
 ```
 
-## Feature Roadmap:
+## Features:
 
 - [ ] Avalanche:
     - [x] Get all open positions by owner wallet address
@@ -162,3 +163,7 @@ pip uninstall alpha-homora-v2
     - [ ] Get current pool APY
     - [ ] Add Liquidity
     - [ ] Remove Liquidity
+
+## Contribution:
+
+Contributions are welcome! Please read the [contribution guidelines](CONTRIBUTING.rst) to learn more about how to contribute to this project.
