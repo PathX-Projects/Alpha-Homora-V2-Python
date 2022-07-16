@@ -128,7 +128,7 @@ How to use the package:
    - Informational Methods
      - Return JSON data
      - Private wallet key ***not required*** for use
-     - See [`examples/position_info.ipynb`](examples\avalanche\position_info.ipynb) for output examples.
+     - See [`examples/position_info.ipynb`](https://github.com/PathX-Projects/Alpha-Homora-V2-Python/blob/development/examples/avalanche/position_info.ipynb) for output examples.
      ```python
      # Get position value (equity, debt, and position value):
      position.get_position_value()
