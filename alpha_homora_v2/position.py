@@ -45,7 +45,8 @@ class AvalanchePosition:
 
         self._oracle = AvalancheSafeOracle()
 
-    """ ------------------------------------------ PRIMARY ------------------------------------------ """
+    """ -------------------- TRANSACTIONAL METHODS: -------------------- """
+    
     def add(self,
             tokenA_data: tuple[ARC20Token, float, float] = None,
             tokenB_data: tuple[ARC20Token, float, float] = None,
@@ -61,6 +62,8 @@ class AvalanchePosition:
                             (ARC20Token, supply_amount, borrow_amount)
         :param tokenLP_data: The LP token if supplying, supply amount, and borrow amount (optional)
                              (ARC20Token object, supply_amount, borrow_amount)
+                             
+        :return: TransactionReceipt object
         """
         self._has_private_key()
 
@@ -115,6 +118,8 @@ class AvalanchePosition:
         :param tokenB_data: The second underlying (or native) token in the pool, and the percentage of this token debt to repay (e.g. 0.50 = 50% of USDC debt)
                             (ARC20Token, pct_amount_repay) (optional)
         :param amount_lp_withdraw: (Advanced) The amount of LP token to withdraw
+        
+        :return: TransactionReceipt object
         """
         self._has_private_key()
 
@@ -148,9 +153,7 @@ class AvalanchePosition:
         """
         Close the position if it is open
 
-        Returns:
-            - transaction hash
-            - transaction receipt
+        :return: TransactionReceipt object
         """
         self._has_private_key()
 
@@ -180,9 +183,9 @@ class AvalanchePosition:
 
         Returns:
             if there are rewards to harvest:
-                - transaction hash (str)
-                - transaction receipt (AttributeDict)
-            else None
+                - TransactionReceipt object
+            else:
+                - None
         """
         self._has_private_key()
 
@@ -195,6 +198,8 @@ class AvalanchePosition:
 
         return self._sign_and_send(encoded_bank_func)
 
+    """ -------------------- INFORMATIONAL METHODS: -------------------- """
+    
     def get_rewards_value(self) -> dict:  # tuple[float, float, str, str]
         """
         Get the amount of outstanding yield farming rewards in the position.
@@ -403,7 +408,7 @@ class AvalanchePosition:
 
         return debt_output
 
-    """ ------------------------------------------ UTILITY ------------------------------------------ """
+    """ -------------------- UTILITY METHODS: -------------------- """
 
     def get_token_borrow_balance(self, token_address: str):
         return self._homora_bank.functions.borrowBalanceCurrent(self.pos_id, Web3.toChecksumAddress(token_address)).call()
