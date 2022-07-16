@@ -1,12 +1,15 @@
-import csv
+from os.path import join, dirname
 import os
+import csv
 import sys
-sys.path.insert(0, '..')
+
+sys.path.insert(0, join(dirname(__file__), '../..'))
 
 from alpha_homora_v2.position import get_avax_positions_by_owner, AvalanchePosition
 
-ADDRESS = os.getenv("PUBLIC_WALLET_ADDRESS")
-CSV_OUTPUT_FILEPATH = os.path.join(os.path.dirname(__file__), "report.csv")  # File will be generated to tests/report.csv
+
+ADDRESS = os.getenv("PUBLIC_WALLET_ADDRESS")  # Set your public wallet address
+CSV_OUTPUT_FILEPATH = os.path.join(os.path.dirname(__file__), "report.csv")  # File will be generated to examples/report.csv
 
 
 def build_rows(ahv2_positions: list[AvalanchePosition]):
@@ -32,8 +35,8 @@ def build_rows(ahv2_positions: list[AvalanchePosition]):
         apys = p.get_current_apy()
         farming_apy = apys['farmingAPY']
         trading_fee_apy = apys['tradingFeeAPY']
-        borrow_apy = None  # Not yet working
-        agg_apy = None
+        borrow_apy = apys['borrowAPY']  # Not yet working
+        agg_apy = apys['APY']
 
         # Rewards
         rewards = p.get_rewards_value()

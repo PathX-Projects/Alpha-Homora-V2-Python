@@ -1,14 +1,17 @@
 <!-- PROJECT HEADER -->
 <div align="center">
-  <a href ="https://homora-v2.alphaventuredao.io/"><img src="img/ahv2.png" alt="Alpha Homora V2 Logo" height="200"></a>
-  <br></br>
+  <a href ="https://homora-v2.alphaventuredao.io/"><img src="https://dappimg.com/media/image/dapp/bd46bacaa4f045d491d2723340590edf.blob" alt="Alpha Homora V2 Logo" height="200"></a>
+  <br/>
   <h2 align="center"><strong>Alpha-Homora-V2-Python</strong></h2>
+    <a href="https://homora-v2.alphaventuredao.io/"><img src="https://img.shields.io/website?down_color=red&down_message=Disconnected&label=Alpha%20Homora%20V2&up_color=blue&up_message=Online&url=https%3A%2F%2Fhomora-v2.alphaventuredao.io%2F"/></a>
+    <img src="https://img.shields.io/badge/Python-3.9%2B-yellow"/>
+    <a href="https://github.com/PathX-Projects/Alpha-Homora-V2-Python/issues"><img src="https://img.shields.io/github/issues/PathX-Projects/Alpha-Homora-V2-Python?color=red"/></a>
     <p align="center">
-        A Python3.9+ package that models open Alpha Homora V2 positions to simplify interaction with their smart contracts in your Python projects.
+        A Python3.9+ package that wraps Alpha Homora V2 positions to simplify interaction with their smart contracts in your Python projects.
     </p>
     <h3><strong>Current Features</strong></h3>
-    <i>Get Rewards Value | Get Position Value | Get Debt Ratio | Get LP Info | <del>Get Current APY</del></i><br>
-    <i>Harvest Rewards | Close Position</i><br>
+    <i>Rewards Value | Position Value | Debt & Leverage Ratio | Pool Info | Current APY</i><br>
+    <i>Harvest Rewards | Close Position | Add & Remove Liquidity</i><br>
     <h3><strong>Current Supported Networks</strong></h3>
     <i>Avalanche</i><br>
     <i><del>Ethereum</del> (WIP)</i><br>
@@ -21,6 +24,9 @@
   <ol>
     <li><a href="#installation">Installation</a></li>
     <li><a href="#usage">Usage</a></li>
+    <ol>
+      <li><a href="#avalanche">Avalanche</a></li>
+    </ol>
     <li><a href="#uninstallation">Uninstallation</a></li>
     <li><a href="#roadmap">Roadmap</a></li>
     <li><a href="#contribution">Contribution</a></li>
@@ -33,14 +39,12 @@ This package is set up to be installed using the `pip` package manager.
 
 1. Ensure that you have Python 3.9+ installed. If not, you can download [here](https://www.python.org/downloads/release/python-3912/). The syntax is dependent on features added in this recent version.
 
-2. Install the package using pip (you must use the git+url as this project is private and not listed on PyPi):
+2. Install the package using pip:
     ```bash
-    pip install git+https://github.com/PathX-Projects/Alpha-Homora-V2-Python.git
+    pip install --upgrade alpha-homora-v2
     ```
 
-    ***Note:*** You may need to provide your git credentials depending on the repository privacy settings. In the event, if you need help generating a personal access token see [here](https://catalyst.zoho.com/help/tutorials/githubbot/generate-access-token.html)
-
-3. After install, the package will be available to you in your local Python environment as ***alpha_homora_v2***
+3. After install, the package will be available to you in your local Python environment as ***alpha-homora-v2***
 
 When updates are made to the package, the version will automatically be incremented so that in order to get the newest version on your end, you can simply use the same installation command and your pip will detect and update to the newest version.
 
@@ -48,23 +52,24 @@ When updates are made to the package, the version will automatically be incremen
 
 How to use the package:
 
-### For Avalanche Positions:
+### Avalanche:
 
-1. Import the package into your Python script:
+1. Import the AvalanchePosition class into your Python script:
     ```python
-    from alpha_homora_v2.util import get_web3_provider
-    from alpha_homora_v2.position import AvalanchePosition
+    from alpha_homora_v2 import AvalanchePosition
     ```
 
-2. **(Optional)** Create your Web3 provider object to interact with the network:
+2. **(Optional)** Instantiate your custom Web3 provider object to interact with the network:
     ```python
+   from alpha_homora_v2.util import get_web3_provider
+   
     NETWORK_RPC_URL = "your_rpc_url"
     provider = get_web3_provider(NETWORK_RPC_URL)
     ```
 3. Creating an [AvalanchePosition](alpha_homora_v2/position.py) instance requires the following:
     - Your position ID (an integer)
         - This ID should match your position on Alpha Homora, without the "#"
-        - ![demo](img/id_highlight.png)
+          ![demo](https://github.com/PathX-Projects/Alpha-Homora-V2-Python/blob/main/img/id_highlight.png?raw=true)
       
     <!--- DEPRECATED
     - The token symbol/pair (a string)
@@ -102,10 +107,31 @@ How to use the package:
    # NOTE: Passing the private key is optional, but required if you want to use transactional methods on the returned AvalanchePosition object(s).
    ```
 5. Use your position instance(s) to interact with the Alpha Homora V2 position smart contracts on the network:
+   - Transactional Methods:
+     - Return a [TransactionReceipt](alpha_homora_v2/receipt.py) object upon success
+     - Private wallet key ***required*** for use to sign transactions
+     - See the documentation in the [AvalanchePosition](alpha_homora_v2/position.py) class for function parameters.
+     ```python
+     # Add liquidity to the LP
+     position.add(params)
+
+     # Remove liquidity from the LP
+     position.remove(params)
+
+     # Harvest available rewards:
+     position.harvest()
+
+     # Close the position:
+     position.close()
+     ```
    - Informational Methods
      - Return JSON data
      - Private wallet key ***not required*** for use
+     - See [`examples/position_info.ipynb`](https://github.com/PathX-Projects/Alpha-Homora-V2-Python/blob/development/examples/avalanche/position_info.ipynb) for output examples.
      ```python
+     # Get position value (equity, debt, and position value):
+     position.get_position_value()
+
      # Get value of harvestable rewards:
      position.get_rewards_value()
 
@@ -115,24 +141,22 @@ How to use the package:
      # Get the current leverage ratio:
      position.get_leverage_ratio()
 
-     # Get position value (equity, debt, and position value):
-     position.get_position_value()
-
-     # (WIP) Get current pool APY (Only returns trading and farmng APY)
+     # Get current pool APY
      position.get_current_apy()
+
+     # Get underlying tokens and LP for the pool:
+     position.get_pool_tokens()
+
+     # Get the debt of each token in the position (token, debt_uint256, debt_token, debt_usd):
+     position.get_tokens_debts()
+     # Alternatively, get the debt of a single token:
+     position.get_token_debts(token_address)
+
+     # Get all token borrow rates from CREAM:
+     position.get_cream_borrow_rates()
 
      # get LP pool info:
      position.pool
-     ```
-   - Transactional Methods:
-     - Return a [TransactionReceipt](alpha_homora_v2/receipt.py) object upon success
-     - Private wallet key ***required*** for use to sign transactions
-     ```python
-     # Harvest available rewards:
-     position.claim_all_rewards()
-
-     # Close the position:
-     position.close()
      ```
 
 ## Uninstallation:
@@ -144,25 +168,26 @@ pip uninstall alpha-homora-v2
 
 ## Features:
 
-- [ ] Avalanche:
+- [x] Avalanche:
     - [x] Get all open positions by owner wallet address
     - [x] Harvest Position Rewards
     - [x] Close Position
     - [x] Get position value of equity and debt
     - [x] Get current debt ratio
     - [x] Get outstanding rewards value in native rewards token and USD
-    - [ ] Get current pool APY
-    - [ ] Add Liquidity
-    - [ ] Remove Liquidity
+    - [x] Add Liquidity
+    - [x] Remove Liquidity
+    - [x] Get aggregate pool APY (incl. borrowAPY)
 - [ ] Ethereum:
+    - [ ] Get all open positions by owner wallet address
     - [ ] Harvest Position Rewards
     - [ ] Close Position
     - [ ] Get position value of equity and debt
     - [ ] Get current debt ratio
     - [ ] Get outstanding rewards value in native rewards token and USD
-    - [ ] Get current pool APY
     - [ ] Add Liquidity
     - [ ] Remove Liquidity
+    - [ ] Get aggregate pool APY (incl. borrowAPY)
 
 ## Contribution:
 
