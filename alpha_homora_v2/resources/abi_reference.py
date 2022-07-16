@@ -8,7 +8,8 @@ These pairs can be passed into the ContractInstanceFunc class using unpacking e.
 
 # Alpha Homora
 HomoraBank_ABI = 'HomoraBankABI.json', '0x376d16C7dE138B01455a51dA79AD65806E9cd694'
-AggregatorOracle_ABI = 'AggregatorOracle.json','0xc842CC25FE89F0A60Fe9C1fd6483B6971020Eb3A'
+AggregatorOracle_ABI = 'AggregatorOracle_ABI.json','0xc842CC25FE89F0A60Fe9C1fd6483B6971020Eb3A'
+ISafeOracle_ABI = 'ISafeOracle_ABI.json', '0xdB90a1A31ff72976b6F2f009e77131673404180b'
 WERC20_ABI = 'WERC20ABI.json', '0x496Aa991Cf3952264f284355371cD190ddcc8588'
 
 # Avalanche - Trader Joe:

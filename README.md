@@ -7,8 +7,8 @@
         A Python3.9+ package that models open Alpha Homora V2 positions to simplify interaction with their smart contracts in your Python projects.
     </p>
     <h3><strong>Current Features</strong></h3>
-    <i>Get Rewards Value | Get Position Value | Get Debt Ratio | Get LP Info | <del>Get Current APY</del></i><br>
-    <i>Harvest Rewards | Close Position</i><br>
+    <i>Rewards Value | Position Value | Debt & Leverage Ratio | Pool Info | <del>Current APY</del></i><br>
+    <i>Harvest Rewards | Close Position | Add & Remove Liquidity</i><br>
     <h3><strong>Current Supported Networks</strong></h3>
     <i>Avalanche</i><br>
     <i><del>Ethereum</del> (WIP)</i><br>
@@ -21,6 +21,9 @@
   <ol>
     <li><a href="#installation">Installation</a></li>
     <li><a href="#usage">Usage</a></li>
+    <ol>
+      <li><a href="#avalanche">Avalanche</a></li>
+    </ol>
     <li><a href="#uninstallation">Uninstallation</a></li>
     <li><a href="#roadmap">Roadmap</a></li>
   </ol>
@@ -34,7 +37,7 @@ This package is set up to be installed using the `pip` package manager.
 
 2. Install the package using pip (you must use the git+url as this project is private and not listed on PyPi):
     ```bash
-    pip install git+https://github.com/PathX-Projects/Alpha-Homora-V2-Python.git
+    pip install --upgrade git+https://github.com/PathX-Projects/Alpha-Homora-V2-Python.git
     ```
 
     ***Note:*** You may need to provide your git credentials depending on the repository privacy settings. In the event, if you need help generating a personal access token see [here](https://catalyst.zoho.com/help/tutorials/githubbot/generate-access-token.html)
@@ -47,7 +50,7 @@ When updates are made to the package, the version will automatically be incremen
 
 How to use the package:
 
-### For Avalanche Positions:
+### Avalanche:
 
 1. Import the package into your Python script:
     ```python
@@ -128,7 +131,7 @@ How to use the package:
      - Private wallet key ***required*** for use to sign transactions
      ```python
      # Harvest available rewards:
-     position.claim_all_rewards()
+     position.harvest()
 
      # Close the position:
      position.close()
@@ -143,24 +146,23 @@ pip uninstall alpha-homora-v2
 
 ## Feature Roadmap:
 
-- [ ] Avalanche:
+- [x] Avalanche:
     - [x] Get all open positions by owner wallet address
     - [x] Harvest Position Rewards
     - [x] Close Position
     - [x] Get position value of equity and debt
     - [x] Get current debt ratio
-    - [ ] Get outstanding rewards value in native rewards token and USD
-        - [x] Pangolin V2
-        - [ ] Trader Joe
-    - [ ] Get current pool APY
-    - [ ] Add Liquidity
-    - [ ] Remove Liquidity
+    - [x] Get outstanding rewards value in native rewards token and USD
+    - [x] Add Liquidity
+    - [x] Remove Liquidity
+    - [x] Get aggregate pool APY (incl. borrowAPY)
 - [ ] Ethereum:
+    - [ ] Get all open positions by owner wallet address
     - [ ] Harvest Position Rewards
     - [ ] Close Position
     - [ ] Get position value of equity and debt
     - [ ] Get current debt ratio
     - [ ] Get outstanding rewards value in native rewards token and USD
-    - [ ] Get current pool APY
     - [ ] Add Liquidity
     - [ ] Remove Liquidity
+    - [ ] Get aggregate pool APY (incl. borrowAPY)

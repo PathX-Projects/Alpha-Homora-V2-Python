@@ -12,26 +12,65 @@ from web3.exceptions import ContractLogicError
 
 from .util import ContractInstanceFunc, checksum
 from .resources.abi_reference import *
+from .provider import avalanche_provider
+from .token import ARC20Token
 
 
 class SpellClient(ABC):
     """Models what each spell client should look like for functionality continuity"""
 
     @abstractmethod
-    def __init__(self, web3_provider: Web3, network_chain_id: int, abi_filename: str, contract_address: str,
+    def __init__(self, network_chain_id: int, abi_filename: str, contract_address: str,
                  wrapper_contract_abi: str, wrapper_contract_address: str,
                  staking_contract_filename: str, staking_contract_address: str):
-        self.w3_provider = web3_provider
         self.network_chain_id = network_chain_id
-        self.spell_contract = ContractInstanceFunc(web3_provider, abi_filename, contract_address)
+        self.spell_contract = ContractInstanceFunc(avalanche_provider, abi_filename, contract_address)
         self.address = Web3.toChecksumAddress(contract_address)
-        self.wrapper_contract = ContractInstanceFunc(web3_provider,
+        self.wrapper_contract = ContractInstanceFunc(avalanche_provider,
                                                      wrapper_contract_abi, wrapper_contract_address)
-        self.staking_contract = ContractInstanceFunc(web3_provider,
+        self.staking_contract = ContractInstanceFunc(avalanche_provider,
                                                      staking_contract_filename, staking_contract_address)
 
     @abstractmethod
     def prepare_claim_all_rewards(self) -> ContractFunction:
+        pass
+
+    @abstractmethod
+    def prepare_add_liquidity(self, pid: int,
+                              tokenA_data: tuple[ARC20Token, int, int],
+                              tokenB_data: tuple[ARC20Token, int, int],
+                              tokenLP_data: tuple[ARC20Token, int, int] = None) -> ContractFunction:
+        """
+        Adds liquidity to the specified pool
+
+        :param pid: The pool id (not position ID)
+        :param tokenA_data: The first underlying token in the pool, supply amount, and borrow amount
+                            (ARC20Token, supply_amount, borrow_amount)
+        :param tokenB_data: The second underlying token in the pool, supply amount, and borrow amount
+                            (ARC20Token, supply_amount, borrow_amount)
+        :param tokenLP_data: The LP token if supplying, supply amount, and borrow amount (optional)
+                             (ARC20Token object, supply_amount, borrow_amount)
+
+        @dev-note
+        The Homora docs state that borrowing LP is not supported, and that amtLPBorrow should always be 0
+        """
+        pass
+
+    @abstractmethod
+    def prepare_remove_liquidity(self, amt_position_remove: int,
+                                 tokenA_data: tuple[ARC20Token, int],
+                                 tokenB_data: tuple[ARC20Token, int],
+                                 amt_lp_withdraw: int) -> ContractFunction:
+        """
+        Remove liquidity from specified pool
+
+        :param amt_position_remove: The amount of the LP (position) to remove from Homora (position.get_position_info()[-1] returns the current size)
+        :param tokenA_data: The first underlying token in the pool, and the amount of this token debt to repay
+                            (ARC20Token, amount_repay)
+        :param tokenB_data: The second underlying token in the pool, and the amount of this token debt to repay
+                            (ARC20Token, amount_repay)
+        :param amt_lp_withdraw: The amount of LP to withdraw
+        """
         pass
 
     @abstractmethod
@@ -83,7 +122,7 @@ class SpellClient(ABC):
 
 
 class TraderJoeClient(SpellClient):
-    def __init__(self, web3_provider: Web3, spell_address: str, w_token_type: str, w_token_address: str,
+    def __init__(self, spell_address: str, w_token_type: str, w_token_address: str,
                  staking_address: str):
         spell_contract = (TraderJoeSpellV1_ABI[0], spell_address)
         wrapper_contract = (TRADERJOE_ABI_REF[w_token_type]['wrapper'], w_token_address)
@@ -92,10 +131,87 @@ class TraderJoeClient(SpellClient):
         self.w_token_type = w_token_type
         self.w_token_address = w_token_address
 
-        super().__init__(web3_provider, 43114, *spell_contract, *wrapper_contract, *staking_contract)
+        super().__init__(43114, *spell_contract, *wrapper_contract, *staking_contract)
 
     def prepare_claim_all_rewards(self) -> ContractFunction:
         return self.spell_contract.encodeABI(fn_name='harvestWMasterChef')
+
+    def prepare_add_liquidity(self, pid: int,
+                              tokenA_data: tuple[ARC20Token, int, int] = None,
+                              tokenB_data: tuple[ARC20Token, int, int] = None,
+                              tokenLP_data: tuple[ARC20Token, int, int] = None) -> ContractFunction:
+        """
+        Adds liquidity to the specified pool
+
+        :param pid: Minichef pool id (not position ID)
+        :param tokenA_data: The first underlying token in the pool, supply amount, and borrow amount
+                            (ARC20Token, supply_amount, borrow_amount)
+        :param tokenB_data: The second underlying token in the pool, supply amount, and borrow amount
+                            (ARC20Token, supply_amount, borrow_amount)
+        :param tokenLP_data: The LP token if supplying, supply amount, and borrow amount (optional)
+                             (ARC20Token object, supply_amount, borrow_amount)
+        """
+
+        amtAUser = tokenA_data[1]  # TokenA amount to supply
+        amtABorrow = tokenA_data[2]  # Amount of tokenA to borrow
+
+        amtBUser = tokenB_data[1]  # TokenB amount to supply
+        amtBBorrow = tokenB_data[2]  # Amount of tokenB to borrow
+
+        amtLPUser = tokenLP_data[1]  # LP token to supply
+        amtLPBorrow = tokenLP_data[2]  # Amount of LP token to borrow, should always be 0
+
+        amtAMin = 0  # Desired tokenA amount (slippage control)
+        amtBMin = 0  # Desired tokenB amount (slippage control)
+
+        # print("Attempting to add liquidity with following parameters:\n"
+        #       "addLiquidityWMiniChef\n"
+        #       f"tokenA Address: {tokenA_data[0].address}\n"
+        #       f"tokenB Address: {tokenB_data[0].address}\n"
+        #       f"amtAUser: {amtAUser, type(amtAUser)}\n"
+        #       f"amtABorrow: {amtABorrow, type(amtABorrow)}\n"
+        #       f"amtBUser: {amtBUser, type(amtBUser)}\n"
+        #       f"amtBBorrow: {amtBBorrow, type(amtBBorrow)}\n"
+        #       f"amtLPUser: {amtLPUser, type(amtLPUser)}\n"
+        #       f"amtLPBorrow: {amtLPBorrow, type(amtLPBorrow)}\n"
+        #       f"amtAMin: {amtAMin, type(amtAMin)}\n"
+        #       f"amtBMin: {amtBMin, type(amtBMin)}\n",
+        #       f"PID: {pid, type(pid)}")
+
+        return self.spell_contract.encodeABI(fn_name='addLiquidityWMasterChef',
+                                             args=[checksum(tokenA_data[0].address), checksum(tokenB_data[0].address),
+                                                   (amtAUser, amtBUser, amtLPUser, amtABorrow, amtBBorrow, amtLPBorrow,
+                                                    amtAMin, amtBMin), pid])
+
+    def prepare_remove_liquidity(self, amt_position_remove: int,
+                                 tokenA_data: tuple[ARC20Token, int],
+                                 tokenB_data: tuple[ARC20Token, int],
+                                 amt_lp_withdraw: int = 0) -> ContractFunction:
+        # Closing parameters:
+        amtLPTake = amt_position_remove  # Amount of position to remove from Homora
+        amtLPWithdraw = amt_lp_withdraw
+        amtLPRepay = 0  # Should be 0
+
+        amtARepay = tokenA_data[1]  # Amount of token A to repay while removing liquidity
+        amtBRepay = tokenB_data[1]  # Amount of token B to repay while removing liquidity
+
+        # Slippage controls (Minimum amount allowed after final transaction); 0 = No slippage controls
+        amtAMin = 0
+        amtBMin = 0
+
+        print("Attempting to remove liquidity with following parameters:\n"
+              "removeLiquidityWMasterChef\n"
+              f"amtLPTake: {amtLPTake, type(amtLPTake)}\n"
+              f"amtLPWithdraw: {amtLPWithdraw, type(amtLPWithdraw)}\n"
+              f"amtARepay: {amtARepay, type(amtARepay)}\n"
+              f"amtBRepay: {amtBRepay, type(amtBRepay)}\n"
+              f"amtAMin: {amtAMin, type(amtAMin)}\n"
+              f"amtBMin: {amtBMin, type(amtBMin)}")
+
+        return self.spell_contract.encodeABI(fn_name='removeLiquidityWMasterChef',
+                                             args=[checksum(tokenA_data[0].address), checksum(tokenB_data[0].address),
+                                                   (amtLPTake, amtLPWithdraw, amtARepay, amtBRepay, amtLPRepay, amtAMin,
+                                                    amtBMin)])
 
     def prepare_close_position(self, underlying_tokens: list[tuple], position_size: int,
                                amtLPRepay: int = 0) -> ContractFunction:
@@ -113,15 +229,15 @@ class TraderJoeClient(SpellClient):
         amtAMin = 0
         amtBMin = 0
 
-        print("Attempting to close position with following parameters:\n"
-              "removeLiquidityWMasterChef\n"
-              f"Underlying Tokens: {underlying_tokens}\n"
-              f"amtLPTake: {amtLPTake}\n"
-              f"amtLPWithdraw: {amtLPWithdraw}\n"
-              f"amtARepay: {amtARepay}\n"
-              f"amtBRepay: {amtBRepay}\n"
-              f"amtAMin: {amtAMin}\n"
-              f"amtBMin: {amtBMin}")
+        # print("Attempting to close position with following parameters:\n"
+        #       "removeLiquidityWMasterChef\n"
+        #       f"Underlying Tokens: {underlying_tokens}\n"
+        #       f"amtLPTake: {amtLPTake}\n"
+        #       f"amtLPWithdraw: {amtLPWithdraw}\n"
+        #       f"amtARepay: {amtARepay}\n"
+        #       f"amtBRepay: {amtBRepay}\n"
+        #       f"amtAMin: {amtAMin}\n"
+        #       f"amtBMin: {amtBMin}")
 
         return self.spell_contract.encodeABI(fn_name='removeLiquidityWMasterChef',
                                              args=[underlying_tokens[0][0], underlying_tokens[1][0],
@@ -167,15 +283,92 @@ class TraderJoeClient(SpellClient):
                 "lpAmt": lpAmt, "rewardDebt": rewardDebt, "wrapper_token_per_share": wrapper_token_per_share}
 
     def get_lp_contract(self, lp_token_address: str) -> web3.eth.Contract:
-        return ContractInstanceFunc(self.w3_provider, TraderJoeLP_ABI[0], lp_token_address)
+        return ContractInstanceFunc(avalanche_provider, TraderJoeLP_ABI[0], lp_token_address)
 
 
 class PangolinV2Client(SpellClient):
-    def __init__(self, web3_provider: Web3):
-        super().__init__(web3_provider, 43114, *PangolinSpellV2_ABI, *WMiniChefPNG_ABI, *MiniChefV2_ABI)
+    def __init__(self):
+        super().__init__(43114, *PangolinSpellV2_ABI, *WMiniChefPNG_ABI, *MiniChefV2_ABI)
 
     def prepare_claim_all_rewards(self) -> ContractFunction:
         return self.spell_contract.encodeABI(fn_name='harvestWMiniChefRewards')
+
+    def prepare_add_liquidity(self, pid: int,
+                              tokenA_data: tuple[ARC20Token, int, int] = None,
+                              tokenB_data: tuple[ARC20Token, int, int] = None,
+                              tokenLP_data: tuple[ARC20Token, int, int] = None) -> ContractFunction:
+        """
+        Adds liquidity to the specified pool
+
+        :param pid: Minichef pool id (not position ID)
+        :param tokenA_data: The first underlying token in the pool, supply amount, and borrow amount
+                            (ARC20Token, supply_amount, borrow_amount)
+        :param tokenB_data: The second underlying token in the pool, supply amount, and borrow amount
+                            (ARC20Token, supply_amount, borrow_amount)
+        :param tokenLP_data: The LP token if supplying, supply amount, and borrow amount (optional)
+                             (ARC20Token object, supply_amount, borrow_amount)
+        """
+
+        amtAUser = tokenA_data[1]  # TokenA amount to supply
+        amtABorrow = tokenA_data[2]  # Amount of tokenA to borrow
+
+        amtBUser = tokenB_data[1]  # TokenB amount to supply
+        amtBBorrow = tokenB_data[2]  # Amount of tokenB to borrow
+
+        amtLPUser = tokenLP_data[1]  # LP token to supply
+        amtLPBorrow = tokenLP_data[2]  # Amount of LP token to borrow, should always be 0
+
+        amtAMin = 0  # Desired tokenA amount (slippage control)
+        amtBMin = 0  # Desired tokenB amount (slippage control)
+
+        # print("Attempting to add liquidity with following parameters:\n"
+        #       "addLiquidityWMiniChef\n"
+        #       f"tokenA Address: {tokenA_data[0].address}\n"
+        #       f"tokenB Address: {tokenB_data[0].address}\n"
+        #       f"amtAUser: {amtAUser, type(amtAUser)}\n"
+        #       f"amtABorrow: {amtABorrow, type(amtABorrow)}\n"
+        #       f"amtBUser: {amtBUser, type(amtBUser)}\n"
+        #       f"amtBBorrow: {amtBBorrow, type(amtBBorrow)}\n"
+        #       f"amtLPUser: {amtLPUser, type(amtLPUser)}\n"
+        #       f"amtLPBorrow: {amtLPBorrow, type(amtLPBorrow)}\n"
+        #       f"amtAMin: {amtAMin, type(amtAMin)}\n"
+        #       f"amtBMin: {amtBMin, type(amtBMin)}\n",
+        #       f"PID: {pid, type(pid)}")
+
+        return self.spell_contract.encodeABI(fn_name='addLiquidityWMiniChef',
+                                             args=[checksum(tokenA_data[0].address), checksum(tokenB_data[0].address),
+                                                   (amtAUser, amtBUser, amtLPUser, amtABorrow, amtBBorrow, amtLPBorrow,
+                                                    amtAMin, amtBMin), pid])
+
+    def prepare_remove_liquidity(self, amt_position_remove: int,
+                                 tokenA_data: tuple[ARC20Token, int],
+                                 tokenB_data: tuple[ARC20Token, int],
+                                 amt_lp_withdraw: int = 0) -> ContractFunction:
+        # Closing parameters:
+        amtLPTake = amt_position_remove  # Amount of position to remove from Homora
+        amtLPWithdraw = amt_lp_withdraw
+        amtLPRepay = 0  # Should be 0
+
+        amtARepay = tokenA_data[1]  # Amount of token A to repay while removing liquidity
+        amtBRepay = tokenB_data[1]  # Amount of token B to repay while removing liquidity
+
+        # Slippage controls (Minimum amount allowed after final transaction); 0 = No slippage controls
+        amtAMin = 0
+        amtBMin = 0
+
+        print("Attempting to remove liquidity with following parameters:\n"
+              "removeLiquidityWMiniChef\n"
+              f"amtLPTake: {amtLPTake, type(amtLPTake)}\n"
+              f"amtLPWithdraw: {amtLPWithdraw, type(amtLPWithdraw)}\n"
+              f"amtARepay: {amtARepay, type(amtARepay)}\n"
+              f"amtBRepay: {amtBRepay, type(amtBRepay)}\n"
+              f"amtAMin: {amtAMin, type(amtAMin)}\n"
+              f"amtBMin: {amtBMin, type(amtBMin)}")
+
+        return self.spell_contract.encodeABI(fn_name='removeLiquidityWMiniChef',
+                                             args=[checksum(tokenA_data[0].address), checksum(tokenB_data[0].address),
+                                                   (amtLPTake, amtLPWithdraw, amtARepay, amtBRepay, amtLPRepay, amtAMin,
+                                                    amtBMin)])
 
     def prepare_close_position(self, underlying_tokens: list[tuple], position_size: int,
                                amtLPRepay: int = 0) -> ContractFunction:
@@ -225,4 +418,4 @@ class PangolinV2Client(SpellClient):
                 "lastRewardTimestamp": pool_info[1], "allocPoint": pool_info[2]}
 
     def get_lp_contract(self, lp_token_address: str) -> web3.eth.Contract:
-        return ContractInstanceFunc(self.w3_provider, PangolinLiquidity_ABI[0], lp_token_address)
+        return ContractInstanceFunc(avalanche_provider, PangolinLiquidity_ABI[0], lp_token_address)

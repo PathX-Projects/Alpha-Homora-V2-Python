@@ -1,9 +1,12 @@
-import csv
+from os.path import join, dirname
 import os
+import csv
 import sys
-sys.path.insert(0, '..')
+
+sys.path.insert(0, join(dirname(__file__), '../..'))
 
 from alpha_homora_v2.position import get_avax_positions_by_owner, AvalanchePosition
+
 
 ADDRESS = os.getenv("PUBLIC_WALLET_ADDRESS")
 CSV_OUTPUT_FILEPATH = os.path.join(os.path.dirname(__file__), "report.csv")  # File will be generated to tests/report.csv

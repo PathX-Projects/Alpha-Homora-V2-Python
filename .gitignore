@@ -150,5 +150,5 @@ cython_debug/
 package_testing.ipynb
 Result/*
 dev_ref/*
-testing.py
+testing*
 tests/report.csv
