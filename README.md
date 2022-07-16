@@ -52,21 +52,22 @@ How to use the package:
 
 ### Avalanche:
 
-1. Import the package into your Python script:
+1. Import the AvalanchePosition class into your Python script:
     ```python
-    from alpha_homora_v2.util import get_web3_provider
     from alpha_homora_v2.position import AvalanchePosition
     ```
 
-2. **(Optional)** Create your Web3 provider object to interact with the network:
+2. **(Optional)** Instantiate your custom Web3 provider object to interact with the network:
     ```python
+   from alpha_homora_v2.util import get_web3_provider
+   
     NETWORK_RPC_URL = "your_rpc_url"
     provider = get_web3_provider(NETWORK_RPC_URL)
     ```
 3. Creating an [AvalanchePosition](alpha_homora_v2/position.py) instance requires the following:
     - Your position ID (an integer)
         - This ID should match your position on Alpha Homora, without the "#"
-        - ![demo](img/id_highlight.png)
+          ![demo](img/id_highlight.png)
       
     <!--- DEPRECATED
     - The token symbol/pair (a string)

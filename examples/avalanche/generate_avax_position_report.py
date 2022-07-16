@@ -9,7 +9,7 @@ from alpha_homora_v2.position import get_avax_positions_by_owner, AvalanchePosit
 
 
 ADDRESS = os.getenv("PUBLIC_WALLET_ADDRESS")
-CSV_OUTPUT_FILEPATH = os.path.join(os.path.dirname(__file__), "report.csv")  # File will be generated to tests/report.csv
+CSV_OUTPUT_FILEPATH = os.path.join(os.path.dirname(__file__), "report.csv")  # File will be generated to examples/report.csv
 
 
 def build_rows(ahv2_positions: list[AvalanchePosition]):
