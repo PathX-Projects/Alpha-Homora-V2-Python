@@ -1,6 +1,6 @@
 <!-- PROJECT HEADER -->
 <div align="center">
-  <a href ="https://homora-v2.alphaventuredao.io/"><img src="https://dappimg.com/media/image/dapp/bd46bacaa4f045d491d2723340590edf.blob" alt="Alpha Homora V2 Logo" height="200"></a>
+  <a href ="https://homora-v2.alphaventuredao.io/"><img src="https://github.com/PathX-Projects/Alpha-Homora-V2-Python/blob/main/img/ahv2_logo.png?raw=true" alt="Alpha Homora V2 Logo" height="200"></a>
   <br/>
   <h2 align="center"><strong>Alpha-Homora-V2-Python</strong></h2>
     <a href="https://homora-v2.alphaventuredao.io/"><img src="https://img.shields.io/website?down_color=red&down_message=Disconnected&label=Alpha%20Homora%20V2&up_color=blue&up_message=Online&url=https%3A%2F%2Fhomora-v2.alphaventuredao.io%2F"/></a>
