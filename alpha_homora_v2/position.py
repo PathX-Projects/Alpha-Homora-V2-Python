@@ -380,9 +380,11 @@ class AvalanchePosition:
                 "debt_avax": debt_value_avax, "debt_usd": debt_value_usd,
                 "position_avax": position_value_avax, "position_usd": position_value_usd}
 
-    def get_token_debts(self) -> list[tuple[ARC20Token, int, float, float]]:
+    def get_token_debts(self, address: str = None) -> list[tuple[ARC20Token, int, float, float]]:
         """
-        Returns the debt amount per token for the position
+        Returns the debt amount per token for the position.
+        
+        :param address: (str) Optional address to get debt for a specific token
 
         :return: list of tuples containing:
             - ARC20Token object
@@ -396,6 +398,9 @@ class AvalanchePosition:
 
         debt_output = []
         for token, debt in zip(r[0], r[1]):
+            if address is not None and address.lower() != token.lower():
+                continue
+            
             arc20_token = self.get_token(token)
             decimals = arc20_token.decimals()
             debt_token = debt / 10 ** decimals
@@ -406,6 +411,9 @@ class AvalanchePosition:
                 debt_usd = 0
             debt_output.append((arc20_token, debt, debt_token, debt_usd))
 
+        if len(debt_output) == 0:
+            raise ValueError("Could not find a debt token matching the address: {}".format(address))
+        
         return debt_output
 
     """ -------------------- UTILITY METHODS: -------------------- """
