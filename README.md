@@ -6,6 +6,7 @@
     <a href="https://homora-v2.alphaventuredao.io/"><img src="https://img.shields.io/website?down_color=red&down_message=Disconnected&label=Alpha%20Homora%20V2&up_color=blue&up_message=Online&url=https%3A%2F%2Fhomora-v2.alphaventuredao.io%2F"/></a>
     <img src="https://img.shields.io/badge/Python-3.9%2B-yellow"/>
     <a href="https://github.com/PathX-Projects/Alpha-Homora-V2-Python/issues"><img src="https://img.shields.io/github/issues/PathX-Projects/Alpha-Homora-V2-Python?color=red"/></a>
+    <a href="https://badge.fury.io/py/alpha-homora-v2"><img src="https://badge.fury.io/py/alpha-homora-v2.svg" alt="PyPI version"></a>
     <p align="center">
         A Python3.9+ package that wraps Alpha Homora V2 positions to simplify interaction with their smart contracts in your Python projects.
     </p>
