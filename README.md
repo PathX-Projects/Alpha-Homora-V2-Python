@@ -29,7 +29,7 @@
       <li><a href="#avalanche">Avalanche</a></li>
     </ol>
     <li><a href="#uninstallation">Uninstallation</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#features">Roadmap</a></li>
     <li><a href="#contribution">Contribution</a></li>
   </ol>
 </details>
@@ -193,3 +193,5 @@ pip uninstall alpha-homora-v2
 ## Contribution:
 
 Contributions are welcome! Please read the [contribution guidelines](CONTRIBUTING.md) to learn more about how to contribute to this project.
+
+Get in touch: [hschickdevs@gmail.com](mailto:hschickdevs@gmail.com)
