@@ -194,4 +194,4 @@ pip uninstall alpha-homora-v2
 
 Contributions are welcome! Please read the [contribution guidelines](CONTRIBUTING.md) to learn more about how to contribute to this project.
 
-Get in Touch: [hschickdevs@gmail.com](mailto:hschickdevs@gmail.com)
+Get in touch: [hschickdevs@gmail.com](mailto:hschickdevs@gmail.com)
