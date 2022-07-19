@@ -59,13 +59,13 @@ How to use the package:
     from alpha_homora_v2 import AvalanchePosition
     ```
 
-2. **(Optional)** Instantiate your custom Web3 provider object to interact with the network:
+<!-- 2. **(Optional)** Instantiate your custom Web3 provider object to interact with the network:
     ```python
    from alpha_homora_v2.util import get_web3_provider
    
     NETWORK_RPC_URL = "your_rpc_url"
     provider = get_web3_provider(NETWORK_RPC_URL)
-    ```
+    ``` -->
 3. Creating an [AvalanchePosition](alpha_homora_v2/position.py) instance requires the following:
     - Your position ID (an integer)
         - This ID should match your position on Alpha Homora, without the "#"
@@ -85,24 +85,24 @@ How to use the package:
     - your public wallet key
     - **(Optional)** your private wallet key
         - Your private key is required to sign transactional methods
-    - **(Optional)** A web3 provider object
-      - If none is passed, an HTTP provider will be created with the [default Avalanche RPC URL](https://api.avax.network/ext/bc/C/rpc)
+    <!-- - **(Optional)** A web3 provider object
+      - If none is passed, an HTTP provider will be created with the [default Avalanche RPC URL](https://api.avax.network/ext/bc/C/rpc) -->
 
     Once you've gathered all of these variables, you can create the position instance like this example below:
     ```python
     position = AvalanchePosition(
                position_id=11049,
                owner_wallet_address="0x...",
-               owner_private_key="123abc456efg789hij...", # <- Optional - see step 4
-               web3_provider=provider)  # <- Optional If you'd like to use a custom provider
+               owner_private_key="123abc456efg789hij...") # <- Optional - see step 4
     ```
+    <!-- web3_provider=provider)  # <- Optional If you'd like to use a custom provider -->
 4. Alternatively, get all open positions ([AvalanchePosition](alpha_homora_v2/position.py) objects) by owner wallet address:
    ```python
    from alpha_homora_v2.position import get_avax_positions_by_owner
    
    positions = get_avax_positions_by_owner(owner_address="owner_wallet_address",
                                            owner_private_key="owner_private_key", # <- Optional
-                                           web3_provider=provider)  # <- Optional
+                                           )
    
    # NOTE: Passing the private key is optional, but required if you want to use transactional methods on the returned AvalanchePosition object(s).
    ```
@@ -148,7 +148,7 @@ How to use the package:
      position.get_pool_tokens()
 
      # Get the debt of each token in the position (token, debt_uint256, debt_token, debt_usd):
-     position.get_tokens_debts()
+     position.get_token_debts()
      # Alternatively, get the debt of a single token:
      position.get_token_debts(token_address)
 
