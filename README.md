@@ -67,7 +67,7 @@ How to use the package:
     NETWORK_RPC_URL = "your_rpc_url"
     provider = get_web3_provider(NETWORK_RPC_URL)
     ``` -->
-3. Creating an [AvalanchePosition](alpha_homora_v2/position.py) instance requires the following:
+2. Creating an [AvalanchePosition](alpha_homora_v2/position.py) instance requires the following:
     - Your position ID (an integer)
         - This ID should match your position on Alpha Homora, without the "#"
           ![demo](https://github.com/PathX-Projects/Alpha-Homora-V2-Python/blob/main/img/id_highlight.png?raw=true)
@@ -97,7 +97,7 @@ How to use the package:
                owner_private_key="123abc456efg789hij...") # <- Optional - see step 4
     ```
     <!-- web3_provider=provider)  # <- Optional If you'd like to use a custom provider -->
-4. Alternatively, get all open positions ([AvalanchePosition](alpha_homora_v2/position.py) objects) by owner wallet address:
+3. Alternatively, get all open positions ([AvalanchePosition](alpha_homora_v2/position.py) objects) by owner wallet address:
    ```python
    from alpha_homora_v2.position import get_avax_positions_by_owner
    
@@ -107,7 +107,7 @@ How to use the package:
    
    # NOTE: Passing the private key is optional, but required if you want to use transactional methods on the returned AvalanchePosition object(s).
    ```
-5. Use your position instance(s) to interact with the Alpha Homora V2 position smart contracts on the network:
+4. Use your position instance(s) to interact with the Alpha Homora V2 position smart contracts on the network:
    - Transactional Methods:
      - Return a [TransactionReceipt](alpha_homora_v2/receipt.py) object upon success
      - Private wallet key ***required*** for use to sign transactions
