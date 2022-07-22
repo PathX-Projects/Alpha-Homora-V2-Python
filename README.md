@@ -34,7 +34,6 @@
     <li><a href="#contribution">Contribution</a></li>
   </ol>
 </details>
-<br>
 
 ## Overview:
 
