@@ -8,7 +8,7 @@
     <a href="https://github.com/PathX-Projects/Alpha-Homora-V2-Python/issues"><img src="https://img.shields.io/github/issues/PathX-Projects/Alpha-Homora-V2-Python?color=red"/></a>
     <a href="https://badge.fury.io/py/alpha-homora-v2"><img src="https://badge.fury.io/py/alpha-homora-v2.svg" alt="PyPI version"></a>
     <p align="center">
-        A Python3.9+ package that wraps Alpha Homora V2 positions to simplify interaction with their smart contracts in your Python projects.
+        A Python3.9+ package that wraps Alpha Homora V2 <b><i>yield farming positions</i></b> to simplify interaction with their smart contracts in your Python projects.
     </p>
     <h3><strong>Current Features</strong></h3>
     <i>Rewards Value | Position Value | Debt & Leverage Ratio | Pool Info | Current APY</i><br>
@@ -23,6 +23,7 @@
 ### Table of Contents
 <details>
   <ol>
+    <li><a href="#overview">Overview</a></li>
     <li><a href="#installation">Installation</a></li>
     <li><a href="#usage">Usage</a></li>
     <ol>
@@ -33,8 +34,20 @@
     <li><a href="#contribution">Contribution</a></li>
   </ol>
 </details>
+<br>
 
-## Installation
+## Overview:
+
+This project aims to simplify interaction with Alpha Homora V2's yield farming position smart contracts in your Python projects by packaging all of the necessary functionality and more into a single Python package built on top of [web3.py](https://web3py.readthedocs.io/en/stable/), instead of brownie.
+
+Currently, only **yield farming** positions are supported, but we plan to integrate lending positions once the functionality for yield farming positions is available on Avalanche and Ethereum.
+
+### Use cases include:
+- Algorithmic liquidity management
+- Automated position closing
+- Position analytics
+
+## Installation:
 
 This package is set up to be installed using the `pip` package manager.
 
@@ -45,17 +58,15 @@ This package is set up to be installed using the `pip` package manager.
     pip install --upgrade alpha-homora-v2
     ```
 
-3. After install, the package will be available to you in your local Python environment as ***alpha-homora-v2***
+    When updates are made to the package, the version will automatically be incremented so that in order to get the newest version on your end, you can simply use the same installation command and your pip will detect and update to the newest version.
 
-When updates are made to the package, the version will automatically be incremented so that in order to get the newest version on your end, you can simply use the same installation command and your pip will detect and update to the newest version.
-
-## Usage
+## Usage:
 
 How to use the package:
 
-### Avalanche:
+### Avalanche
 
-1. Import the AvalanchePosition class into your Python script:
+3. Import the AvalanchePosition class into your Python script:
     ```python
     from alpha_homora_v2 import AvalanchePosition
     ```
@@ -67,7 +78,7 @@ How to use the package:
     NETWORK_RPC_URL = "your_rpc_url"
     provider = get_web3_provider(NETWORK_RPC_URL)
     ``` -->
-3. Creating an [AvalanchePosition](alpha_homora_v2/position.py) instance requires the following:
+4. Creating an [AvalanchePosition](alpha_homora_v2/position.py) instance requires the following:
     - Your position ID (an integer)
         - This ID should match your position on Alpha Homora, without the "#"
           ![demo](https://github.com/PathX-Projects/Alpha-Homora-V2-Python/blob/main/img/id_highlight.png?raw=true)
@@ -97,7 +108,7 @@ How to use the package:
                owner_private_key="123abc456efg789hij...") # <- Optional - see step 4
     ```
     <!-- web3_provider=provider)  # <- Optional If you'd like to use a custom provider -->
-4. Alternatively, get all open positions ([AvalanchePosition](alpha_homora_v2/position.py) objects) by owner wallet address:
+5. Alternatively, get all open positions ([AvalanchePosition](alpha_homora_v2/position.py) objects) by owner wallet address:
    ```python
    from alpha_homora_v2.position import get_avax_positions_by_owner
    
@@ -107,7 +118,7 @@ How to use the package:
    
    # NOTE: Passing the private key is optional, but required if you want to use transactional methods on the returned AvalanchePosition object(s).
    ```
-5. Use your position instance(s) to interact with the Alpha Homora V2 position smart contracts on the network:
+6. Use your position instance(s) to interact with the Alpha Homora V2 position smart contracts on the network:
    - Transactional Methods:
      - Return a [TransactionReceipt](alpha_homora_v2/receipt.py) object upon success
      - Private wallet key ***required*** for use to sign transactions
