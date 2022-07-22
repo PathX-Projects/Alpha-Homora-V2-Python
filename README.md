@@ -34,7 +34,6 @@
     <li><a href="#contribution">Contribution</a></li>
   </ol>
 </details>
-<br>
 
 ## Overview:
 
@@ -42,12 +41,12 @@ This project aims to simplify interaction with Alpha Homora V2's yield farming p
 
 ![Positions Image](img/site.png)
 
-Currently, only **yield farming** positions are supported, but we plan to integrate lending positions once the functionality for yield farming positions is available on Avalanche and Ethereum.
+Currently, only **_yield farming_** positions are supported, but we plan to integrate lending positions once the functionality for yield farming positions is available on Avalanche and Ethereum.
 
 ### Use cases include:
 - Algorithmic liquidity management
 - Automated position closing
-- Position analytics
+- Dynamic position analytics
 
 ## Installation:
 
