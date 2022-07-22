@@ -40,6 +40,8 @@
 
 This project aims to simplify interaction with Alpha Homora V2's yield farming position smart contracts in your Python projects by packaging all of the necessary functionality and more into a single Python package built on top of [web3.py](https://web3py.readthedocs.io/en/stable/), instead of brownie.
 
+![Positions Image](img/site.png)
+
 Currently, only **yield farming** positions are supported, but we plan to integrate lending positions once the functionality for yield farming positions is available on Avalanche and Ethereum.
 
 ### Use cases include:
